@@ -84,6 +84,10 @@ export default function WalletsScreen() {
         isPrimary: w.id === wallet.id,
       }))
     );
+    // Also update the shared mock data so other screens reflect the change
+    wallets.forEach((w) => {
+      w.isPrimary = w.id === wallet.id;
+    });
   };
 
   const totalBalance = localWallets.reduce((sum, w) => sum + w.balance, 0);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { currentUser, wallets, transactions, getTotalBalance } from '../../data/mockData';
 
@@ -73,7 +73,9 @@ const TransactionItem = ({ transaction }) => {
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const isFocused = useIsFocused();
+  const [walletList, setWalletList] = useState(wallets);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -82,6 +84,12 @@ export default function HomeScreen() {
   };
 
   const recentTransactions = transactions.slice(0, 4);
+
+  useEffect(() => {
+    if (isFocused) {
+      setWalletList([...wallets]);
+    }
+  }, [isFocused]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -146,7 +154,7 @@ export default function HomeScreen() {
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
-          {wallets.map((wallet) => (
+          {walletList.map((wallet) => (
             <WalletCard key={wallet.id} wallet={wallet} />
           ))}
         </View>
