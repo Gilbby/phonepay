@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { currentUser, wallets, transactions, getTotalBalance } from '../../data/mockData';
+import { currentUser } from '../../data/mockData';
+import { useWallets } from '../../context/WalletsContext';
+import * as mockAdapter from '../../services/mockAdapter';
+import WalletCard from '../../components/ui/WalletCard';
+import TransactionItem from '../../components/ui/TransactionItem';
 
 const QuickActionButton = ({ icon, label, color, onPress }) => (
   <TouchableOpacity style={styles.quickActionButton} onPress={onPress} activeOpacity={0.7}>
@@ -22,60 +26,12 @@ const QuickActionButton = ({ icon, label, color, onPress }) => (
   </TouchableOpacity>
 );
 
-const WalletCard = ({ wallet }) => (
-  <View style={[styles.walletCard, { borderLeftColor: wallet.color }]}>
-    <View style={styles.walletInfo}>
-      <Text style={styles.walletName}>{wallet.name}</Text>
-      {wallet.isPrimary && (
-        <View style={styles.primaryBadge}>
-          <Text style={styles.primaryBadgeText}>Primary</Text>
-        </View>
-      )}
-    </View>
-    <Text style={styles.walletBalance}>
-      {wallet.currency}{wallet.balance.toLocaleString()}
-    </Text>
-  </View>
-);
-
-const TransactionItem = ({ transaction }) => {
-  const isSent = transaction.type === 'sent' || transaction.type === 'cash_out';
-  const icon = transaction.type === 'cash_out' ? 'cash' : isSent ? 'arrow-up' : 'arrow-down';
-  const color = isSent ? COLORS.error : COLORS.success;
-  
-  const getName = () => {
-    if (transaction.type === 'sent') return transaction.recipientName;
-    if (transaction.type === 'received') return transaction.senderName;
-    if (transaction.type === 'cash_out') return `Agent ${transaction.agentCode}`;
-    return 'Unknown';
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  return (
-    <View style={styles.transactionItem}>
-      <View style={[styles.transactionIcon, { backgroundColor: color + '20' }]}>
-        <Ionicons name={icon} size={20} color={color} />
-      </View>
-      <View style={styles.transactionInfo}>
-        <Text style={styles.transactionName}>{getName()}</Text>
-        <Text style={styles.transactionDate}>{formatDate(transaction.date)}</Text>
-      </View>
-      <Text style={[styles.transactionAmount, { color }]}>
-        {isSent ? '-' : '+'}K{transaction.amount}
-      </Text>
-    </View>
-  );
-};
+// UI components extracted to src/components/ui
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
-  const isFocused = useIsFocused();
-  const [walletList, setWalletList] = useState(wallets);
+  const { wallets: walletList } = useWallets();
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -83,13 +39,10 @@ export default function HomeScreen() {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
-  const recentTransactions = transactions.slice(0, 4);
+  const recentTransactions = mockAdapter.getTransactions().slice(0, 4);
+  const totalBalance = (walletList || []).reduce((sum, w) => sum + (w.balance || 0), 0);
 
-  useEffect(() => {
-    if (isFocused) {
-      setWalletList([...wallets]);
-    }
-  }, [isFocused]);
+  // Wallets come from context; refresh handled via context methods when needed
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -114,7 +67,7 @@ export default function HomeScreen() {
         {/* Total Balance Card */}
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={styles.balanceAmount}>K{getTotalBalance().toLocaleString()}</Text>
+          <Text style={styles.balanceAmount}>K{totalBalance.toLocaleString()}</Text>
           <View style={styles.balanceRow}>
             <Ionicons name="trending-up" size={16} color={COLORS.secondaryLight} />
             <Text style={styles.balanceChange}>+12.5% this month</Text>

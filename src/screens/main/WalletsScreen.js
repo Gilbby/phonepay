@@ -10,87 +10,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { wallets, getTotalBalance } from '../../data/mockData';
-
-const WalletCard = ({ wallet, isSelected, onSelect, onSetPrimary }) => (
-  <TouchableOpacity
-    style={[
-      styles.walletCard,
-      { borderLeftColor: wallet.color },
-      isSelected && styles.walletCardSelected,
-    ]}
-    onPress={() => onSelect(wallet)}
-    activeOpacity={0.7}
-  >
-    <View style={styles.walletHeader}>
-      <View style={[styles.walletIcon, { backgroundColor: wallet.color + '20' }]}>
-        <Ionicons name="phone-portrait" size={24} color={wallet.color} />
-      </View>
-      <View style={styles.walletInfo}>
-        <View style={styles.walletNameRow}>
-          <Text style={styles.walletName}>{wallet.name}</Text>
-          {wallet.isPrimary && (
-            <View style={styles.primaryBadge}>
-              <Text style={styles.primaryBadgeText}>Primary</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.walletProvider}>Mobile Money</Text>
-      </View>
-    </View>
-    
-    <View style={styles.walletBalance}>
-      <Text style={styles.balanceLabel}>Balance</Text>
-      <Text style={styles.balanceAmount}>
-        {wallet.currency}{wallet.balance.toLocaleString()}
-      </Text>
-    </View>
-
-    {isSelected && (
-      <View style={styles.walletActions}>
-        {!wallet.isPrimary && (
-          <TouchableOpacity
-            style={styles.setPrimaryButton}
-            onPress={() => onSetPrimary(wallet)}
-          >
-            <Ionicons name="star-outline" size={16} color={COLORS.primary} />
-            <Text style={styles.setPrimaryText}>Set as Primary</Text>
-          </TouchableOpacity>
-        )}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.actionButtonText}>Add Funds</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="swap-horizontal" size={20} color={COLORS.primary} />
-            <Text style={styles.actionButtonText}>Transfer</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    )}
-  </TouchableOpacity>
-);
+import { useWallets } from '../../context/WalletsContext';
+import WalletCard from '../../components/ui/WalletCard';
 
 export default function WalletsScreen() {
   const [selectedWallet, setSelectedWallet] = useState(null);
-  const [localWallets, setLocalWallets] = useState(wallets);
+  const { wallets: localWallets, refresh, setPrimary } = useWallets();
   const [showBalance, setShowBalance] = useState(true);
 
   const handleSetPrimary = (wallet) => {
-    setLocalWallets((prev) =>
-      prev.map((w) => ({
-        ...w,
-        isPrimary: w.id === wallet.id,
-      }))
-    );
-    // Also update the shared mock data so other screens reflect the change
-    wallets.forEach((w) => {
-      w.isPrimary = w.id === wallet.id;
-    });
+    setPrimary(wallet.id);
+    refresh();
+    setSelectedWallet(null);
   };
 
-  const totalBalance = localWallets.reduce((sum, w) => sum + w.balance, 0);
+  const totalBalance = localWallets.reduce((sum, w) => sum + (w.balance || 0), 0);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -133,13 +67,24 @@ export default function WalletsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Connected Wallets</Text>
           {localWallets.map((wallet) => (
-            <WalletCard
-              key={wallet.id}
-              wallet={wallet}
-              isSelected={selectedWallet?.id === wallet.id}
-              onSelect={setSelectedWallet}
-              onSetPrimary={handleSetPrimary}
-            />
+            <React.Fragment key={wallet.id}>
+              <WalletCard
+                wallet={wallet}
+                onPress={setSelectedWallet}
+                onLongPress={handleSetPrimary}
+              />
+
+              {selectedWallet?.id === wallet.id && (
+                <View style={styles.walletActions}>
+                  <TouchableOpacity
+                    style={styles.setPrimaryButton}
+                    onPress={() => handleSetPrimary(wallet)}
+                  >
+                    <Text style={styles.setPrimaryText}>Set as Primary</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </React.Fragment>
           ))}
         </View>
 

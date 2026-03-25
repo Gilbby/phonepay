@@ -10,7 +10,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { transactions } from '../../data/mockData';
+import * as mockAdapter from '../../services/mockAdapter';
+import TransactionItem from '../../components/ui/TransactionItem';
 
 const FilterButton = ({ label, isActive, onPress }) => (
   <TouchableOpacity
@@ -23,109 +24,7 @@ const FilterButton = ({ label, isActive, onPress }) => (
   </TouchableOpacity>
 );
 
-const TransactionItem = ({ transaction }) => {
-  const isSent = transaction.type === 'sent' || transaction.type === 'cash_out';
-  
-  const getIcon = () => {
-    switch (transaction.type) {
-      case 'sent':
-        return 'arrow-up';
-      case 'received':
-        return 'arrow-down';
-      case 'cash_out':
-        return 'cash';
-      default:
-        return 'swap-horizontal';
-    }
-  };
-
-  const getColor = () => {
-    switch (transaction.type) {
-      case 'sent':
-      case 'cash_out':
-        return COLORS.error;
-      case 'received':
-        return COLORS.success;
-      default:
-        return COLORS.textSecondary;
-    }
-  };
-
-  const getName = () => {
-    if (transaction.type === 'sent') return transaction.recipientName;
-    if (transaction.type === 'received') return transaction.senderName;
-    if (transaction.type === 'cash_out') return `Agent ${transaction.agentCode}`;
-    return 'Unknown';
-  };
-
-  const getTypeLabel = () => {
-    switch (transaction.type) {
-      case 'sent':
-        return 'Sent';
-      case 'received':
-        return 'Received';
-      case 'cash_out':
-        return 'Cash Out';
-      default:
-        return 'Transaction';
-    }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getStatusColor = () => {
-    switch (transaction.status) {
-      case 'completed':
-        return COLORS.success;
-      case 'pending':
-        return COLORS.warning;
-      case 'failed':
-        return COLORS.error;
-      default:
-        return COLORS.textMuted;
-    }
-  };
-
-  return (
-    <TouchableOpacity style={styles.transactionItem} activeOpacity={0.7}>
-      <View style={[styles.transactionIcon, { backgroundColor: getColor() + '20' }]}>
-        <Ionicons name={getIcon()} size={24} color={getColor()} />
-      </View>
-      <View style={styles.transactionInfo}>
-        <View style={styles.transactionHeader}>
-          <Text style={styles.transactionName}>{getName()}</Text>
-          <Text style={[styles.transactionAmount, { color: getColor() }]}>
-            {isSent ? '-' : '+'}K{transaction.amount}
-          </Text>
-        </View>
-        <View style={styles.transactionMeta}>
-          <Text style={styles.transactionType}>{getTypeLabel()}</Text>
-          <View style={styles.dot} />
-          <Text style={styles.transactionDate}>{formatDate(transaction.date)}</Text>
-        </View>
-        <View style={styles.transactionFooter}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor() + '20' }]}>
-            <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
-            <Text style={[styles.statusText, { color: getStatusColor() }]}>
-              {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-            </Text>
-          </View>
-          {transaction.fee > 0 && (
-            <Text style={styles.feeText}>Fee: K{transaction.fee}</Text>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
+// TransactionItem extracted to src/components/ui/TransactionItem.js
 
 export default function TransactionsScreen() {
   const [activeFilter, setActiveFilter] = useState('all');
@@ -137,6 +36,8 @@ export default function TransactionsScreen() {
     { key: 'received', label: 'Received' },
     { key: 'cash_out', label: 'Cash Out' },
   ];
+
+  const transactions = mockAdapter.getTransactions();
 
   const filteredTransactions = transactions.filter((t) => {
     if (activeFilter === 'all') return true;

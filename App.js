@@ -3,6 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppProvider } from './src/context/AppContext';
+import AppNavigator from './src/navigation/AppNavigator';
 
 // Auth Screens
 import SplashScreen from './src/screens/auth/SplashScreen';
@@ -30,72 +32,12 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <StatusBar style="dark" />
-        <Stack.Navigator
-          initialRouteName="Splash"
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: COLORS.background },
-            animation: 'slide_from_right',
-          }}
-        >
-          {/* Auth Flow */}
-          <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="OTP" component={OTPScreen} />
-          <Stack.Screen name="CreateAlias" component={CreateAliasScreen} />
-          
-          {/* Main App */}
-          <Stack.Screen name="MainTabs" component={MainTabs} />
-          
-          {/* Send Money Flow */}
-          <Stack.Screen 
-            name="SendMoney" 
-            component={SendMoneyScreen}
-            options={{ headerShown: true, headerTitle: 'Send Money', headerTintColor: COLORS.primary }}
-          />
-          <Stack.Screen 
-            name="SendAmount" 
-            component={SendAmountScreen}
-            options={{ headerShown: true, headerTitle: 'Enter Amount', headerTintColor: COLORS.primary }}
-          />
-          <Stack.Screen 
-            name="SendConfirm" 
-            component={SendConfirmScreen}
-            options={{ headerShown: true, headerTitle: 'Confirm', headerTintColor: COLORS.primary }}
-          />
-          <Stack.Screen 
-            name="SendSuccess" 
-            component={SendSuccessScreen}
-            options={{ headerShown: false }}
-          />
-          
-          {/* Receive Money */}
-          <Stack.Screen 
-            name="ReceiveMoney" 
-            component={ReceiveMoneyScreen}
-            options={{ headerShown: true, headerTitle: 'Receive Money', headerTintColor: COLORS.primary }}
-          />
-          
-          {/* Get Cash Flow */}
-          <Stack.Screen 
-            name="GetCash" 
-            component={GetCashScreen}
-            options={{ headerShown: true, headerTitle: 'Get Cash', headerTintColor: COLORS.primary }}
-          />
-          <Stack.Screen 
-            name="GetCashAmount" 
-            component={GetCashAmountScreen}
-            options={{ headerShown: true, headerTitle: 'Cash Amount', headerTintColor: COLORS.primary }}
-          />
-          <Stack.Screen 
-            name="GetCashSuccess" 
-            component={GetCashSuccessScreen}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AppProvider>
+        <NavigationContainer>
+          <StatusBar style="dark" />
+          <AppNavigator />
+        </NavigationContainer>
+      </AppProvider>
     </SafeAreaProvider>
   );
 }

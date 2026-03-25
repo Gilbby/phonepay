@@ -3,19 +3,22 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { wallets, calculateFee } from '../../data/mockData';
+import { useWallets } from '../../context/WalletsContext';
+import calculateFee from '../../utils/calculateFee';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
 
 export default function SendAmountScreen({ navigation, route }) {
   const { recipient } = route.params;
   const [amount, setAmount] = useState('');
-  const primaryWallet = wallets.find((w) => w.isPrimary) || wallets[0];
+  const { wallets } = useWallets();
+  const primaryWallet = wallets.find((w) => w.isPrimary) || wallets[0] || { balance: 0, name: '', currency: 'K' };
 
   const numericAmount = parseFloat(amount) || 0;
   const fee = calculateFee(numericAmount);
@@ -61,10 +64,8 @@ export default function SendAmountScreen({ navigation, route }) {
           <Text style={styles.amountLabel}>Enter Amount</Text>
           <View style={styles.amountInputWrapper}>
             <Text style={styles.currencySymbol}>K</Text>
-            <TextInput
+            <Input
               style={styles.amountInput}
-              placeholder="0"
-              placeholderTextColor={COLORS.textMuted}
               keyboardType="numeric"
               value={amount}
               onChangeText={(text) => setAmount(text.replace(/[^0-9.]/g, ''))}
@@ -123,18 +124,17 @@ export default function SendAmountScreen({ navigation, route }) {
         )}
 
         {/* Continue Button */}
-        <TouchableOpacity
+        <Button
           style={[
             styles.continueButton,
             (!isValidAmount || hasInsufficientFunds) && styles.continueButtonDisabled,
           ]}
           onPress={handleContinue}
           disabled={!isValidAmount || hasInsufficientFunds}
-          activeOpacity={0.8}
         >
           <Text style={styles.continueButtonText}>Continue</Text>
           <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
-        </TouchableOpacity>
+        </Button>
       </View>
     </KeyboardAvoidingView>
   );
