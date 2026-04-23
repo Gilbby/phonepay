@@ -12,9 +12,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { users } from '../../data/mockData';
-import { RootStackScreenProps } from '../../types';
+import { RootStackScreenProps, User } from '../../types';
 
-const ContactItem: React.FC<{ user: any; onSelect: (u: any) => void }> = ({ user, onSelect }) => (
+const ContactItem: React.FC<{ user: User; onSelect: (u: User) => void }> = ({ user, onSelect }) => (
   <TouchableOpacity style={styles.contactItem} onPress={() => onSelect(user)} activeOpacity={0.7}>
     <View style={styles.contactAvatar}>
       <Text style={styles.contactInitial}>{user.name.charAt(0)}</Text>
@@ -31,7 +31,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('alias');
 
-  const filteredUsers = users.filter((user: any) => {
+  const filteredUsers = users.filter((user: User) => {
     const query = searchQuery.toLowerCase();
     return (
       user.name.toLowerCase().includes(query) ||
@@ -40,7 +40,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
     );
   });
 
-  const handleSelectUser = (user: any) => {
+  const handleSelectUser = (user: User) => {
     navigation.navigate('SendAmount', { recipient: user });
   };
 
@@ -117,7 +117,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
 
         {filteredUsers.length > 0 ? (
           <FlatList
-            data={filteredUsers.filter((u: any) => u.alias !== '@gibby')}
+            data={filteredUsers.filter((u: User) => u.alias !== '@gibby')}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <ContactItem user={item} onSelect={handleSelectUser} />

@@ -12,8 +12,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { currentUser } from '../../data/mockData';
+import { MainTabsParamList, RootStackParamList } from '../../types';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const SettingItem = ({ icon, label, value, onPress, showChevron = true, danger = false }: any) => (
+import type { ComponentProps } from 'react';
+
+const SettingItem = ({
+  icon,
+  label,
+  value,
+  onPress,
+  showChevron = true,
+  danger = false,
+}: {
+  icon: ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  value?: string | number;
+  onPress?: () => void;
+  showChevron?: boolean;
+  danger?: boolean;
+}) => (
   <TouchableOpacity style={styles.settingItem} onPress={onPress} activeOpacity={0.7}>
     <View style={[styles.settingIcon, danger && styles.settingIconDanger]}>
       <Ionicons name={icon} size={20} color={danger ? COLORS.error : COLORS.textSecondary} />
@@ -26,7 +45,17 @@ const SettingItem = ({ icon, label, value, onPress, showChevron = true, danger =
   </TouchableOpacity>
 );
 
-const SettingToggle = ({ icon, label, value, onValueChange }: any) => (
+const SettingToggle = ({
+  icon,
+  label,
+  value,
+  onValueChange,
+}: {
+  icon: ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  value: boolean;
+  onValueChange: (val: boolean) => void;
+}) => (
   <View style={styles.settingItem}>
     <View style={styles.settingIcon}>
       <Ionicons name={icon} size={20} color={COLORS.textSecondary} />
@@ -41,7 +70,7 @@ const SettingToggle = ({ icon, label, value, onValueChange }: any) => (
   </View>
 );
 
-export default function ProfileScreen({ navigation }: any) {
+export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainTabsParamList, 'Profile'>) {
   const [isAgentMode, setIsAgentMode] = useState(!!currentUser.isAgent);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -55,7 +84,10 @@ export default function ProfileScreen({ navigation }: any) {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: () => (navigation as any).replace('Login'),
+          onPress: () => {
+            const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+            rootNav?.replace('Auth');
+          },
         },
       ]
     );

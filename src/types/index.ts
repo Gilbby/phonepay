@@ -63,7 +63,7 @@ export type RootStackParamList = {
   SendMoney: undefined;
   SendAmount: { recipient: User };
   SendConfirm: { recipient: User; amount: number; fee: number; total: number; wallet: Wallet };
-  SendSuccess: undefined;
+  SendSuccess: { recipient: User; amount: number; fee: number };
   ReceiveMoney: undefined;
   GetCash: undefined;
   GetCashAmount: { agent: Agent };

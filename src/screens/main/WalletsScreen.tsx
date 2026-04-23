@@ -14,11 +14,11 @@ import { useWallets } from '../../context/WalletsContext';
 import WalletCard from '../../components/ui/WalletCard';
 
 export default function WalletsScreen() {
-  const [selectedWallet, setSelectedWallet] = useState<any | null>(null);
+  const [selectedWallet, setSelectedWallet] = useState<{ id: string } | null>(null);
   const { wallets: localWallets, refresh, setPrimary } = useWallets();
   const [showBalance, setShowBalance] = useState(true);
 
-  const handleSetPrimary = (wallet: any) => {
+  const handleSetPrimary = (wallet: { id: string }) => {
     setPrimary(wallet.id);
     refresh();
     setSelectedWallet(null);

@@ -18,7 +18,7 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      navigation.navigate('SendSuccess', { recipient, amount, fee } as any);
+      navigation.navigate('SendSuccess', { recipient, amount, fee });
     }, 2000);
   };
 

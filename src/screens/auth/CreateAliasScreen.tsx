@@ -3,13 +3,15 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { AuthStackScreenProps } from '../../types';
+import { AuthStackScreenProps, RootStackParamList } from '../../types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export default function CreateAliasScreen({ navigation }: AuthStackScreenProps<'CreateAlias'>) {
   const [alias, setAlias] = useState('');
 
   const handleCreate = () => {
-    (navigation as any).replace('MainTabs');
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    rootNav?.replace('MainTabs');
   };
 
   return (

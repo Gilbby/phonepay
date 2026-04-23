@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, type ComponentProps } from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,20 @@ import { useWallets } from '../../context/WalletsContext';
 import * as mockAdapter from '../../services/mockAdapter';
 import WalletCard from '../../components/ui/WalletCard';
 import TransactionItem from '../../components/ui/TransactionItem';
-import { HomeScreenProps } from '../../types';
+import { HomeScreenProps, RootStackParamList } from '../../types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const QuickActionButton = ({ icon, label, color, onPress }: any) => (
+const QuickActionButton = ({
+  icon,
+  label,
+  color,
+  onPress,
+}: {
+  icon: ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  color: string;
+  onPress?: () => void;
+}) => (
   <TouchableOpacity style={styles.quickActionButton} onPress={onPress} activeOpacity={0.7}>
     <View style={[styles.quickActionIcon, { backgroundColor: color + '20' }]}>
       <Ionicons name={icon} size={24} color={color} />
@@ -29,6 +40,8 @@ const QuickActionButton = ({ icon, label, color, onPress }: any) => (
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [refreshing, setRefreshing] = useState(false);
   const { wallets: walletList } = useWallets();
+
+  const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -73,19 +86,19 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               icon="send"
               label="Send"
               color={COLORS.primary}
-              onPress={() => (navigation as any).navigate('SendMoney')}
+              onPress={() => rootNav?.navigate('SendMoney')}
             />
             <QuickActionButton
               icon="download"
               label="Receive"
               color={COLORS.secondary}
-              onPress={() => (navigation as any).navigate('ReceiveMoney')}
+              onPress={() => rootNav?.navigate('ReceiveMoney')}
             />
             <QuickActionButton
               icon="cash"
               label="Get Cash"
               color={COLORS.warning}
-              onPress={() => (navigation as any).navigate('GetCash')}
+              onPress={() => rootNav?.navigate('GetCash')}
             />
           </View>
         </View>
@@ -93,7 +106,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Wallets</Text>
-            <TouchableOpacity onPress={() => (navigation as any).navigate('Wallets')}>
+              <TouchableOpacity onPress={() => navigation.navigate('Wallets')}>
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
@@ -105,7 +118,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Transactions</Text>
-            <TouchableOpacity onPress={() => (navigation as any).navigate('Transactions')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Transactions')}>
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>

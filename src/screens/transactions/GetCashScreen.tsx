@@ -12,9 +12,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { agents } from '../../data/mockData';
-import { RootStackScreenProps } from '../../types';
+import { RootStackScreenProps, Agent } from '../../types';
 
-const AgentItem: React.FC<{ agent: any; onSelect: (a: any) => void }> = ({ agent, onSelect }) => (
+const AgentItem: React.FC<{ agent: Agent; onSelect: (a: Agent) => void }> = ({ agent, onSelect }) => (
   <TouchableOpacity style={styles.agentItem} onPress={() => onSelect(agent)} activeOpacity={0.7}>
     <View style={styles.agentIcon}>
       <Ionicons name="storefront" size={24} color={COLORS.warning} />
@@ -42,13 +42,13 @@ export default function GetCashScreen({ navigation }: RootStackScreenProps<'GetC
     );
   });
 
-  const handleSelectAgent = (agent: any) => {
+  const handleSelectAgent = (agent: Agent) => {
     navigation.navigate('GetCashAmount', { agent });
   };
 
   const handleContinue = () => {
     if (agentCode.length > 0) {
-      const mockAgent = {
+      const mockAgent: Agent = {
         id: 'custom',
         code: agentCode.toUpperCase(),
         name: 'Agent ' + agentCode.toUpperCase(),

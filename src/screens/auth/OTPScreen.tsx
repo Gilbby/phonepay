@@ -7,7 +7,7 @@ import { AuthStackScreenProps } from '../../types';
 
 export default function OTPScreen({ navigation, route }: AuthStackScreenProps<'OTP'>) {
   const [code, setCode] = useState('');
-  const phoneNumber = (route.params as any)?.phoneNumber || '';
+  const phoneNumber = route.params?.phoneNumber ?? '';
 
   const handleVerify = () => {
     navigation.replace('CreateAlias');

@@ -12,12 +12,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import * as mockAdapter from '../../services/mockAdapter';
 import TransactionItem from '../../components/ui/TransactionItem';
-import { MainTabsParamList } from '../../types';
+import { MainTabsParamList, Transaction } from '../../types';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 type Props = BottomTabScreenProps<MainTabsParamList, 'Transactions'>;
 
-const FilterButton = ({ label, isActive, onPress }: any) => (
+const FilterButton = ({ label, isActive, onPress }: { label: string; isActive: boolean; onPress?: () => void }) => (
   <TouchableOpacity
     style={[styles.filterButton, isActive && styles.filterButtonActive]}
     onPress={onPress}
@@ -63,7 +63,7 @@ export default function TransactionsScreen({}: Props) {
     </View>
   );
 
-  const groupedTransactions = filteredTransactions.reduce((groups: Record<string, any[]>, transaction: any) => {
+  const groupedTransactions = filteredTransactions.reduce((groups: Record<string, Transaction[]>, transaction: Transaction) => {
     const date = new Date(transaction.date).toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
@@ -74,7 +74,7 @@ export default function TransactionsScreen({}: Props) {
     }
     groups[date].push(transaction);
     return groups;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, Transaction[]>);
 
   const sections = Object.entries(groupedTransactions).map(([date, items]) => ({
     date,
@@ -126,7 +126,7 @@ export default function TransactionsScreen({}: Props) {
           renderItem={({ item: section }) => (
             <View>
               <Text style={styles.sectionHeader}>{section.date}</Text>
-              {section.data.map((transaction: any) => (
+              {section.data.map((transaction: Transaction) => (
                 <TransactionItem key={transaction.id} transaction={transaction} />
               ))}
             </View>

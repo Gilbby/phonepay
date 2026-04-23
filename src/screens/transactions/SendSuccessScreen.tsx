@@ -12,7 +12,7 @@ import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { RootStackScreenProps } from '../../types';
 
 export default function SendSuccessScreen({ navigation, route }: RootStackScreenProps<'SendSuccess'>) {
-  const { recipient, amount, fee } = route.params as any;
+  const { recipient, amount, fee } = route.params;
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 

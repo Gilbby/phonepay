@@ -42,7 +42,7 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
         amount: numericAmount,
         fee,
         total,
-      } as any);
+      });
     }, 2000);
   };
 

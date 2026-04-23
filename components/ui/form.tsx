@@ -11,15 +11,15 @@ import {
 } from 'react-hook-form'
 
 // Local fallback types (tightened) to avoid requiring full `react-hook-form` types here.
-type FieldValues = Record<string, any>
+type FieldValues = Record<string, unknown>
 type FieldPath<T = FieldValues> = string & {}
 type ControllerProps<
   TFieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > = {
   name: TName
-  rules?: any
-  render?: (props: { field: any; fieldState?: any; formState?: any }) => React.ReactNode
+  rules?: unknown
+  render?: (props: { field: unknown; fieldState?: unknown; formState?: unknown }) => React.ReactNode
 }
 
 import { cn } from '@/lib/utils'

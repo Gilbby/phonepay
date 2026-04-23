@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
 
 import HomeScreen from '../screens/main/HomeScreen';
 import TransactionsScreen from '../screens/main/TransactionsScreen';
@@ -18,7 +19,7 @@ export default function MainTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: any;
+          let iconName: ComponentProps<typeof Ionicons>['name'];
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';

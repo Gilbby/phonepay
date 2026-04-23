@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ComponentProps } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING } from '../../constants/theme';
@@ -10,7 +10,8 @@ interface Props {
 
 export default function TransactionItem({ transaction }: Props) {
   const isSent = transaction.type === 'sent' || transaction.type === 'cash_out';
-  const icon = transaction.type === 'cash_out' ? 'cash' : isSent ? 'arrow-up' : 'arrow-down';
+  const icon: ComponentProps<typeof Ionicons>['name'] =
+    transaction.type === 'cash_out' ? 'cash' : isSent ? 'arrow-up' : 'arrow-down';
   const color = isSent ? COLORS.error : COLORS.success;
 
   const getName = () => {
@@ -28,7 +29,7 @@ export default function TransactionItem({ transaction }: Props) {
   return (
     <View style={styles.transactionItem}>
       <View style={[styles.transactionIcon, { backgroundColor: color + '20' }]}> 
-        <Ionicons name={icon as any} size={20} color={color} />
+        <Ionicons name={icon} size={20} color={color} />
       </View>
       <View style={styles.transactionInfo}>
         <Text style={styles.transactionName}>{getName()}</Text>

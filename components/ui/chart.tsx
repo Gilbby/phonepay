@@ -108,8 +108,9 @@ type RechartPayloadItem = {
   dataKey?: string
   name?: string
   value?: number | string
-  payload?: any
+  payload?: Record<string, unknown>
   color?: string
+  graphicalItemId?: string
 }
 
 function ChartTooltipContent({
@@ -128,14 +129,23 @@ function ChartTooltipContent({
   labelKey,
 }: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
   React.ComponentProps<'div'> & {
+    payload?: RechartPayloadItem[]
     hideLabel?: boolean
     hideIndicator?: boolean
     indicator?: 'line' | 'dot' | 'dashed'
     nameKey?: string
     labelKey?: string
+    label?: React.ReactNode
+    labelFormatter?: (label: React.ReactNode | undefined, payload?: RechartPayloadItem[] | undefined) => React.ReactNode
+    formatter?: (
+      value: RechartPayloadItem['value'],
+      name?: string,
+      item?: RechartPayloadItem,
+      index?: number,
+      payload?: Record<string, unknown>
+    ) => React.ReactNode
   }) {
   const { config } = useChart()
-
   const tooltipLabel = React.useMemo(() => {
     if (hideLabel || !payload?.length) {
       return null
