@@ -274,3 +274,4 @@ export {
   MenubarSubTrigger,
   MenubarSubContent,
 }
+export default Menubar

@@ -6,6 +6,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "App.js", "App.tsx"],
-  "exclude": ["components", "public", "node_modules"]
+  "include": ["src", "components", "App.js", "App.tsx"],
+  "exclude": ["public", "node_modules"]
 }

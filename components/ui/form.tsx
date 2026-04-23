@@ -8,13 +8,22 @@ import {
   FormProvider,
   useFormContext,
   useFormState,
-  type ControllerProps,
-  type FieldPath,
-  type FieldValues,
 } from 'react-hook-form'
 
+// Local fallback types (tightened) to avoid requiring full `react-hook-form` types here.
+type FieldValues = Record<string, any>
+type FieldPath<T = FieldValues> = string & {}
+type ControllerProps<
+  TFieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+> = {
+  name: TName
+  rules?: any
+  render?: (props: { field: any; fieldState?: any; formState?: any }) => React.ReactNode
+}
+
 import { cn } from '@/lib/utils'
-import { Label } from '@/components/ui/label'
+import { Label } from './label'
 
 const Form = FormProvider
 

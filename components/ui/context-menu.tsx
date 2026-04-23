@@ -250,3 +250,4 @@ export {
   ContextMenuSubTrigger,
   ContextMenuRadioGroup,
 }
+export default ContextMenu
