@@ -1,80 +1,202 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { AuthStackScreenProps } from '../../types';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../types';
 
-export default function OTPScreen({ navigation, route }: AuthStackScreenProps<'OTP'>) {
-  const [code, setCode] = useState('');
-  const phoneNumber = route.params?.phoneNumber ?? '';
+type Props = NativeStackScreenProps<AuthStackParamList, 'OTP'>;
 
-  const handleVerify = () => {
-    navigation.replace('CreateAlias');
+export default function OTPScreen({ navigation, route }: Props) {
+  const { phoneNumber } = route.params || { phoneNumber: '971234567' };
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [resendTimer, setResendTimer] = useState<number>(30);
+  const inputRefs = useRef<(TextInput | null)[]>([]);
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
+
+    const interval = setInterval(() => {
+      setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleOtpChange = (value: string, index: number): void => {
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
   };
+
+  const handleKeyPress = (e: any, index: number): void => {
+    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerify = (): void => {
+    const otpString = otp.join('');
+    if (otpString.length < 6) return;
+
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      navigation.navigate('CreateAlias');
+    }, 1500);
+  };
+
+  const handleResend = (): void => {
+    if (resendTimer > 0) return;
+    setResendTimer(30);
+  };
+
+  const isComplete = otp.every((digit) => digit !== '');
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="lock-closed" size={48} color={COLORS.primary} />
-        <Text style={styles.title}>Enter Verification Code</Text>
-        <Text style={styles.subtitle}>We sent a code to {phoneNumber}</Text>
-      </View>
-
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={code}
-          onChangeText={setCode}
-          maxLength={6}
-        />
-
-        <TouchableOpacity style={styles.button} onPress={handleVerify} activeOpacity={0.8}>
-          <Text style={styles.buttonText}>Verify</Text>
-          <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
-      </View>
+
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="chatbubble-ellipses" size={32} color={COLORS.primary} />
+            </View>
+            <Text style={styles.title}>Verify Your Number</Text>
+            <Text style={styles.subtitle}>
+              We sent a 6-digit code to{'\n'}
+              <Text style={styles.phone}>+260 {phoneNumber}</Text>
+            </Text>
+          </View>
+
+          <View style={styles.otpContainer}>
+            {otp.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={(ref) => (inputRefs.current[index] = ref)}
+                style={[styles.otpInput, digit && styles.otpInputFilled]}
+                value={digit}
+                onChangeText={(value) => handleOtpChange(value.slice(-1), index)}
+                onKeyPress={(e) => handleKeyPress(e, index)}
+                keyboardType="number-pad"
+                maxLength={1}
+                selectTextOnFocus
+              />
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, !isComplete && styles.buttonDisabled]}
+            onPress={handleVerify}
+            disabled={!isComplete || isLoading}
+            activeOpacity={0.8}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <>
+                <Text style={styles.buttonText}>Verify</Text>
+                <Ionicons name="checkmark" size={20} color={COLORS.white} />
+              </>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.resendContainer}>
+            <Text style={styles.resendText}>Didn't receive the code?</Text>
+            <TouchableOpacity onPress={handleResend} disabled={resendTimer > 0}>
+              <Text
+                style={[
+                  styles.resendButton,
+                  resendTimer > 0 && styles.resendDisabled,
+                ]}
+              >
+                {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend Code'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.xl,
-  },
-  header: {
+  container: { flex: 1, backgroundColor: COLORS.background },
+  keyboardView: { flex: 1 },
+  backButton: { padding: SPACING.md, marginLeft: SPACING.sm },
+  content: { flex: 1, paddingHorizontal: SPACING.lg },
+  header: { alignItems: 'center', marginBottom: SPACING.xxl },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.primaryLight + '30',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   title: {
+    fontSize: FONTS.sizes.xxl,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  phone: { fontWeight: '600', color: COLORS.textPrimary },
+  otpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    marginBottom: SPACING.xl,
+  },
+  otpInput: {
+    width: 48,
+    height: 56,
+    borderRadius: RADIUS.md,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    textAlign: 'center',
     fontSize: FONTS.sizes.xl,
     fontWeight: '600',
     color: COLORS.textPrimary,
-    marginTop: SPACING.sm,
-  },
-  subtitle: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textMuted,
-    marginTop: SPACING.xs,
-  },
-  form: {
-    marginTop: SPACING.md,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    fontSize: FONTS.sizes.lg,
-    color: COLORS.textPrimary,
     ...SHADOWS.sm,
   },
+  otpInputFilled: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primaryLight + '20',
+  },
   button: {
-    marginTop: SPACING.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -82,10 +204,12 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
     gap: SPACING.sm,
+    ...SHADOWS.md,
   },
-  buttonText: {
-    color: COLORS.white,
-    fontSize: FONTS.sizes.md,
-    fontWeight: '600',
-  },
+  buttonDisabled: { backgroundColor: COLORS.textMuted },
+  buttonText: { fontSize: FONTS.sizes.md, fontWeight: '600', color: COLORS.white },
+  resendContainer: { alignItems: 'center', marginTop: SPACING.xl },
+  resendText: { fontSize: FONTS.sizes.sm, color: COLORS.textMuted, marginBottom: SPACING.xs },
+  resendButton: { fontSize: FONTS.sizes.md, fontWeight: '600', color: COLORS.primary },
+  resendDisabled: { color: COLORS.textMuted },
 });
