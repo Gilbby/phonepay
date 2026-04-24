@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
@@ -24,7 +25,11 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.summaryHeader}>
           <Ionicons name="paper-plane" size={48} color={COLORS.primary} />
           <Text style={styles.summaryTitle}>Confirm Transfer</Text>
@@ -85,7 +90,7 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
             Please ensure the recipient details are correct. Transactions cannot be reversed.
           </Text>
         </View>
-      </View>
+      </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -122,8 +127,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.lg,
+    paddingBottom: SPACING.lg,
   },
   summaryHeader: {
     alignItems: 'center',

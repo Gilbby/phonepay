@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
@@ -45,7 +46,11 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.recipientCard}>
           <View style={styles.recipientAvatar}>
             <Text style={styles.recipientInitial}>{recipient.name.charAt(0).toUpperCase()}</Text>
@@ -119,7 +124,9 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
             </View>
           </View>
         )}
+      </ScrollView>
 
+      <View style={styles.footer}>
         <Button
           style={[
             styles.continueButton,
@@ -143,8 +150,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
   },
   recipientCard: {
     flexDirection: 'row',
@@ -277,6 +287,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.primary,
   },
+  footer: {
+    padding: SPACING.lg,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    height: 142,
+  },
   continueButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -284,8 +301,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
-    marginTop: 'auto',
-    marginBottom: SPACING.lg,
     gap: SPACING.sm,
     ...SHADOWS.md,
   },

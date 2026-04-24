@@ -13,8 +13,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../../types';
+import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AuthStackParamList, RootStackParamList } from '../../types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'CreateAlias'>;
 
@@ -38,7 +38,7 @@ export default function CreateAliasScreen({ navigation }: Props) {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      navigation.replace('MainTabs');
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.replace('MainTabs');
     }, 1500);
   };
 

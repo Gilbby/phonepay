@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
@@ -51,7 +52,12 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
+
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.agentCard}>
           <View style={styles.agentIcon}>
             <Ionicons name="storefront" size={24} color={COLORS.warning} />
@@ -133,8 +139,8 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
             Show this screen to the agent to complete your cash withdrawal.
           </Text>
         </View>
-      </View>
 
+ </ScrollView>
       <View style={styles.footer}>
         <Button
           style={[
@@ -155,6 +161,7 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
         </Button>
       </View>
     </KeyboardAvoidingView>
+  
   );
 }
 
@@ -165,8 +172,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.md,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.lg,
   },
   agentCard: {
     flexDirection: 'row',
@@ -320,6 +330,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+    height: 142,
   },
   withdrawButton: {
     flexDirection: 'row',

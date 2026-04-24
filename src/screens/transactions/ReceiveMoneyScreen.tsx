@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Share,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
@@ -31,7 +32,11 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Your Payment Details</Text>
           <Text style={styles.headerSubtitle}>
@@ -118,7 +123,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
             </Text>
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -141,8 +146,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
   },
   headerInfo: {
     alignItems: 'center',

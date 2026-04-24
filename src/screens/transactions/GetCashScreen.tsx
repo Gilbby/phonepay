@@ -256,9 +256,9 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: SPACING.xxl,
     paddingBottom: SPACING.xxl,
   },
   emptyStateText: {

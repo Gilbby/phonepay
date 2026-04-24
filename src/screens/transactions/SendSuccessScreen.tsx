@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,7 +43,11 @@ export default function SendSuccessScreen({ navigation, route }: RootStackScreen
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <Animated.View
           style={[
             styles.successCircle,
@@ -95,7 +100,7 @@ export default function SendSuccessScreen({ navigation, route }: RootStackScreen
             </View>
           </View>
         </Animated.View>
-      </View>
+      </ScrollView>
 
       <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
         <TouchableOpacity
@@ -126,9 +131,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.xxl,
+    paddingBottom: SPACING.lg,
   },
   successCircle: {
     marginBottom: SPACING.xl,
