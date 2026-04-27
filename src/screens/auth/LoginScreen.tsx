@@ -25,7 +25,8 @@ export default function LoginScreen({ navigation }: AuthStackScreenProps<'Login'
       return;
     }
     setError('');
-    const existingUser = users.find((u) => u.phone === phoneNumber);
+    const fullPhone = `+260${phoneNumber}`;
+    const existingUser = users.find((u) => u.phone === fullPhone); 
     const isNewUser = !existingUser;
     navigation.navigate('OTP', { phoneNumber, isNewUser });
   };

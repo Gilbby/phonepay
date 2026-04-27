@@ -57,12 +57,16 @@ export default function OTPScreen({ navigation, route }: Props) {
     if (otpString.length < 6) return;
 
     setIsLoading(true);
-    await login(phoneNumber, otpString);
-    setIsLoading(false);
 
     if (isNewUser) {
+      // don't login yet — they still need to create an alias
+      await new Promise((r) => setTimeout(r, 1500));
+      setIsLoading(false);
       navigation.replace('CreateAlias');
     } else {
+      // existing user — login and go to main app
+      await login(phoneNumber, otpString);
+      setIsLoading(false);
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.replace('MainTabs');
     }
   };
