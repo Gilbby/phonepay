@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import * as mockAdapter from '../services/mockAdapter';
 import { Wallet } from '../types';
+import { API_URL, authHeaders } from '../config/api';
 
 type WalletsContextValue = {
   wallets: Wallet[];
@@ -12,17 +12,21 @@ type WalletsContextValue = {
 
 const WalletsContext = createContext<WalletsContextValue | null>(null);
 
-export const WalletsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [wallets, setWallets] = useState<Wallet[]>(mockAdapter.getWallets());
+export const WalletsProvider: React.FC<{ children: React.ReactNode; token: string | null }> = ({ children, token }) => {
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = async () => {
+    if (!token) return;
     setIsLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 500));
-      const data = mockAdapter.getWallets();
-      setWallets(data);
+      const response = await fetch(`${API_URL}/wallets`, {
+        headers: authHeaders(token),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      setWallets(data.wallets);
       setError(null);
     } catch (e) {
       setError(String(e));
@@ -32,11 +36,16 @@ export const WalletsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const setPrimary = async (id: string) => {
+    if (!token) return;
     setIsLoading(true);
     try {
-      mockAdapter.setPrimaryWallet(id);
-      const data = mockAdapter.getWallets();
-      setWallets(data);
+      const response = await fetch(`${API_URL}/wallets/${id}/primary`, {
+        method: 'PATCH',
+        headers: authHeaders(token),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      setWallets(data.wallets);
       setError(null);
     } catch (e) {
       setError(String(e));
@@ -46,8 +55,8 @@ export const WalletsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   useEffect(() => {
-    void refresh();
-  }, []);
+    if (token) void refresh();
+  }, [token]);
 
   return (
     <WalletsContext.Provider value={{ wallets, isLoading, error, refresh, setPrimary }}>

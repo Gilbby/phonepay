@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as mockAdapter from '../services/mockAdapter';
 import { Transaction } from '../types';
-
+import { API_URL, authHeaders } from '../config/api';
 
 type TransactionsContextValue = {
   transactions: Transaction[];
@@ -12,17 +11,21 @@ type TransactionsContextValue = {
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
 
-export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [transactions, setTransactions] = useState<Transaction[]>(mockAdapter.getTransactions());
+export const TransactionsProvider: React.FC<{ children: React.ReactNode; token: string | null }> = ({ children, token }) => {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = async () => {
+    if (!token) return;
     setIsLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 500));
-      const data = mockAdapter.getTransactions();
-      setTransactions(data);
+      const response = await fetch(`${API_URL}/transactions`, {
+        headers: authHeaders(token),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      setTransactions(data.transactions);
       setError(null);
     } catch (e) {
       setError(String(e));
@@ -30,10 +33,10 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setIsLoading(false);
     }
   };
-    
-    useEffect(() => {
-    void refresh();
-    }, []);
+
+  useEffect(() => {
+    if (token) void refresh();
+  }, [token]);
 
   return (
     <TransactionsContext.Provider value={{ transactions, isLoading, error, refresh }}>
