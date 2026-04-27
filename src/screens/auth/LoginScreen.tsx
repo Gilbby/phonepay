@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { AuthStackScreenProps } from '../../types';
+import { users } from '../../data/mockData';
 
 export default function LoginScreen({ navigation }: AuthStackScreenProps<'Login'>) {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -24,7 +25,9 @@ export default function LoginScreen({ navigation }: AuthStackScreenProps<'Login'
       return;
     }
     setError('');
-    navigation.navigate('OTP', { phoneNumber });
+    const existingUser = users.find((u) => u.phone === phoneNumber);
+    const isNewUser = !existingUser;
+    navigation.navigate('OTP', { phoneNumber, isNewUser });
   };
 
   return (

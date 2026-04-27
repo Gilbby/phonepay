@@ -53,13 +53,14 @@ export type MainTabsParamList = {
 export type AuthStackParamList = {
   Splash: undefined;
   Login: undefined;
-  OTP: { phoneNumber?: string };
+  OTP: { phoneNumber: string; isNewUser: boolean };
   CreateAlias: undefined;
 };
 
 export type RootStackParamList = {
   Auth: undefined;
   MainTabs: undefined;
+  TransactionStack: undefined;
   SendMoney: undefined;
   SendAmount: { recipient: User };
   SendConfirm: { recipient: User; amount: number; fee: number; total: number; wallet: Wallet };

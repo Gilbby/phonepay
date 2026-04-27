@@ -87,19 +87,19 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               icon="send"
               label="Send"
               color={COLORS.primary}
-              onPress={() => rootNav?.navigate('SendMoney')}
+              onPress={() => rootNav?.navigate('TransactionStack' as any, { screen: 'SendMoney' })}
             />
             <QuickActionButton
               icon="download"
               label="Receive"
               color={COLORS.secondary}
-              onPress={() => rootNav?.navigate('ReceiveMoney')}
+              onPress={() => rootNav?.navigate('TransactionStack' as any, { screen: 'ReceiveMoney' })}
             />
             <QuickActionButton
               icon="cash"
               label="Get Cash"
               color={COLORS.warning}
-              onPress={() => rootNav?.navigate('GetCash')}
+              onPress={() => rootNav?.navigate('TransactionStack' as any, { screen: 'GetCash' })}
             />
           </View>
         </View>

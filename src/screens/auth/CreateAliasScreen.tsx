@@ -15,10 +15,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList, RootStackParamList } from '../../types';
+import { useApp } from '../../context/AppContext';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'CreateAlias'>;
 
 export default function CreateAliasScreen({ navigation }: Props) {
+  const { login } = useApp();
   const [alias, setAlias] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -38,7 +40,10 @@ export default function CreateAliasScreen({ navigation }: Props) {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.replace('MainTabs');
+      void (async () => {
+        await login('', '');
+        navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.replace('MainTabs');
+      })();
     }, 1500);
   };
 

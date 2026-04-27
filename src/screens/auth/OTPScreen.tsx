@@ -12,13 +12,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../../types';
+import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AuthStackParamList, RootStackParamList } from '../../types';
+import { useApp } from '../../context/AppContext';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'OTP'>;
 
 export default function OTPScreen({ navigation, route }: Props) {
-  const { phoneNumber } = route.params || { phoneNumber: '971234567' };
+  const { login } = useApp();
+  const { phoneNumber, isNewUser } = route.params || { phoneNumber: '971234567', isNewUser: true };
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [resendTimer, setResendTimer] = useState<number>(30);
@@ -50,15 +52,19 @@ export default function OTPScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleVerify = (): void => {
+  const handleVerify = async (): Promise<void> => {
     const otpString = otp.join('');
     if (otpString.length < 6) return;
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      navigation.navigate('CreateAlias');
-    }, 1500);
+    await login(phoneNumber, otpString);
+    setIsLoading(false);
+
+    if (isNewUser) {
+      navigation.replace('CreateAlias');
+    } else {
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.replace('MainTabs');
+    }
   };
 
   const handleResend = (): void => {

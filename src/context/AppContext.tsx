@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { WalletsProvider } from './WalletsContext';
 import { currentUser as mockCurrentUser } from '../data/mockData';
 import { User } from '../types';
@@ -15,8 +15,8 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(mockCurrentUser || null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(Boolean(mockCurrentUser));
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const login = async (_phone: string, _otp: string) => {
     setIsLoading(true);
@@ -33,6 +33,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsAuthenticated(false);
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      await new Promise((r) => setTimeout(r, 1500));
+      setIsLoading(false);
+    };
+    void checkAuth();
+  }, []);
 
   return (
     <AppContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
