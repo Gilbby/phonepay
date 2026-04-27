@@ -8,12 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthStackParamList, RootStackParamList } from '../../types';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../types';
 import { useApp } from '../../context/AppContext';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'OTP'>;
@@ -57,17 +58,26 @@ export default function OTPScreen({ navigation, route }: Props) {
     if (otpString.length < 6) return;
 
     setIsLoading(true);
-
-    if (isNewUser) {
-      // don't login yet — they still need to create an alias
-      await new Promise((r) => setTimeout(r, 1500));
+    try {
+      if (isNewUser) {
+        // New user — just navigate to CreateAlias
+        // login() will be called after alias creation
+        await new Promise((r) => setTimeout(r, 1500));
+        navigation.replace('CreateAlias');
+      } else {
+        // Existing user — verify OTP against backend and login
+        await login(`+260${phoneNumber}`, otpString);
+        navigation.getParent()?.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' as never }],
+      });
+      }
+    } catch {
+      Alert.alert('Error', 'Invalid OTP. Please try again.');
+      setOtp(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+    } finally {
       setIsLoading(false);
-      navigation.replace('CreateAlias');
-    } else {
-      // existing user — login and go to main app
-      await login(phoneNumber, otpString);
-      setIsLoading(false);
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.replace('MainTabs');
     }
   };
 
