@@ -67,3 +67,10 @@ export const transactions: Transaction[] = [
     fee: 1,
   },
 ];
+
+// Agents (kept with mock data for now)
+export const agents = [
+  { id: '1', code: 'AG001', name: 'City Market Agent', location: 'Lusaka' },
+  { id: '2', code: 'AG045', name: 'Mall Agent', location: 'Kitwe' },
+  { id: '3', code: 'AG102', name: 'Corner Shop Agent', location: 'Ndola' },
+];
