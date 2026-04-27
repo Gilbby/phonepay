@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as mockAdapter from '../services/mockAdapter';
 import { Transaction } from '../types';
+
 
 type TransactionsContextValue = {
   transactions: Transaction[];
@@ -29,6 +30,10 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setIsLoading(false);
     }
   };
+    
+    useEffect(() => {
+    void refresh();
+    }, []);
 
   return (
     <TransactionsContext.Provider value={{ transactions, isLoading, error, refresh }}>
