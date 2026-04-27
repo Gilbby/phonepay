@@ -16,12 +16,14 @@ import GetCashSuccessScreen from '../screens/transactions/GetCashSuccessScreen';
 
 import { COLORS } from '../constants/theme';
 import { RootStackParamList } from '../types';
+import { TransactionsProvider } from '../context/TransactionsContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator
+    <TransactionsProvider>
+      <Stack.Navigator
       id="root"
       initialRouteName="Auth"
       screenOptions={{
@@ -82,5 +84,6 @@ export default function AppNavigator() {
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
+    </TransactionsProvider>
   );
 }

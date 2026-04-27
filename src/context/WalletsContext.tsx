@@ -4,28 +4,53 @@ import { Wallet } from '../types';
 
 type WalletsContextValue = {
   wallets: Wallet[];
-  refresh: () => void;
-  setPrimary: (id: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+  setPrimary: (id: string) => Promise<void>;
 };
 
 const WalletsContext = createContext<WalletsContextValue | null>(null);
 
 export const WalletsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [wallets, setWallets] = useState<Wallet[]>(mockAdapter.getWallets());
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const refresh = () => setWallets(mockAdapter.getWallets());
+  const refresh = async () => {
+    setIsLoading(true);
+    try {
+      await new Promise((r) => setTimeout(r, 500));
+      const data = mockAdapter.getWallets();
+      setWallets(data);
+      setError(null);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const setPrimary = (id: string) => {
-    mockAdapter.setPrimaryWallet(id);
-    refresh();
+  const setPrimary = async (id: string) => {
+    setIsLoading(true);
+    try {
+      mockAdapter.setPrimaryWallet(id);
+      const data = mockAdapter.getWallets();
+      setWallets(data);
+      setError(null);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, []);
 
   return (
-    <WalletsContext.Provider value={{ wallets, refresh, setPrimary }}>
+    <WalletsContext.Provider value={{ wallets, isLoading, error, refresh, setPrimary }}>
       {children}
     </WalletsContext.Provider>
   );

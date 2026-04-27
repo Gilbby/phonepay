@@ -1,23 +1,41 @@
 import React, { createContext, useContext, useState } from 'react';
 import { WalletsProvider } from './WalletsContext';
 import { currentUser as mockCurrentUser } from '../data/mockData';
-import { User, Wallet } from '../types';
+import { User } from '../types';
 
 type AppContextValue = {
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  selectedWallet: Wallet | null;
-  setSelectedWallet: React.Dispatch<React.SetStateAction<Wallet | null>>;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (phone: string, otp: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(mockCurrentUser || null);
-  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(Boolean(mockCurrentUser));
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const login = async (_phone: string, _otp: string) => {
+    setIsLoading(true);
+    await new Promise((r) => setTimeout(r, 1500));
+    setUser(mockCurrentUser || null);
+    setIsAuthenticated(true);
+    setIsLoading(false);
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    await new Promise((r) => setTimeout(r, 1500));
+    setUser(null);
+    setIsAuthenticated(false);
+    setIsLoading(false);
+  };
 
   return (
-    <AppContext.Provider value={{ user, setUser, selectedWallet, setSelectedWallet }}>
+    <AppContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
       <WalletsProvider>{children}</WalletsProvider>
     </AppContext.Provider>
   );

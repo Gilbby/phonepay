@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import * as mockAdapter from '../../services/mockAdapter';
+import { useTransactions } from '../../context/TransactionsContext';
 import TransactionItem from '../../components/ui/TransactionItem';
 import { MainTabsParamList, Transaction } from '../../types';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -39,7 +39,7 @@ export default function TransactionsScreen({}: Props) {
     { key: 'cash_out', label: 'Cash Out' },
   ];
 
-  const transactions = mockAdapter.getTransactions();
+  const { transactions } = useTransactions();
 
   const filteredTransactions = transactions.filter((t) => {
     if (activeFilter === 'all') return true;

@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { currentUser } from '../../data/mockData';
 import { useWallets } from '../../context/WalletsContext';
-import * as mockAdapter from '../../services/mockAdapter';
+import { useTransactions } from '../../context/TransactionsContext';
 import WalletCard from '../../components/ui/WalletCard';
 import TransactionItem from '../../components/ui/TransactionItem';
 import { HomeScreenProps, RootStackParamList } from '../../types';
@@ -48,7 +48,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
-  const recentTransactions = mockAdapter.getTransactions().slice(0, 4);
+  const { transactions } = useTransactions();
+  const recentTransactions = (transactions || []).slice(0, 4);
   const totalBalance = (walletList || []).reduce((sum, w) => sum + (w.balance || 0), 0);
 
   return (
