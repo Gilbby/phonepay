@@ -8,27 +8,54 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { AuthStackScreenProps } from '../../types';
-import { users } from '../../data/mockData';
+import { API_URL } from '../../config/api';
 
 export default function LoginScreen({ navigation }: AuthStackScreenProps<'Login'>) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (phoneNumber.length < 9) {
       setError('Please enter a valid phone number');
       return;
     }
     setError('');
-    const fullPhone = `+260${phoneNumber}`;
-    const existingUser = users.find((u) => u.phone === fullPhone); 
-    const isNewUser = !existingUser;
-    navigation.navigate('OTP', { phoneNumber, isNewUser });
+    setIsLoading(true);
+
+    try {
+      const fullPhone = `+260${phoneNumber}`;
+
+      // Check if new or existing user
+      const checkResponse = await fetch(`${API_URL}/auth/check-phone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: fullPhone }),
+      });
+      const checkData = await checkResponse.json();
+      if (!checkResponse.ok) throw new Error(checkData.message);
+
+      // Send OTP
+      const otpResponse = await fetch(`${API_URL}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: fullPhone }),
+      });
+      const otpData = await otpResponse.json();
+      if (!otpResponse.ok) throw new Error(otpData.message);
+
+      navigation.navigate('OTP', { phoneNumber, isNewUser: checkData.isNewUser });
+    } catch (e) {
+      setError('Failed to send OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -75,13 +102,20 @@ export default function LoginScreen({ navigation }: AuthStackScreenProps<'Login'
             <TouchableOpacity
               style={[
                 styles.button,
-                phoneNumber.length < 9 && styles.buttonDisabled,
+                (phoneNumber.length < 9 || isLoading) && styles.buttonDisabled,
               ]}
               onPress={handleContinue}
               activeOpacity={0.8}
+              disabled={phoneNumber.length < 9 || isLoading}
             >
-              <Text style={styles.buttonText}>Continue</Text>
-              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+              {isLoading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Text style={styles.buttonText}>Continue</Text>
+                  <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+                </>
+              )}
             </TouchableOpacity>
           </View>
 
