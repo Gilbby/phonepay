@@ -12,6 +12,10 @@ type WalletsContextValue = {
 
 const WalletsContext = createContext<WalletsContextValue | null>(null);
 
+// Map MongoDB _id to id for frontend compatibility
+const mapWallets = (wallets: any[]): Wallet[] =>
+  wallets.map((w) => ({ ...w, id: w._id }));
+
 export const WalletsProvider: React.FC<{ children: React.ReactNode; token: string | null }> = ({ children, token }) => {
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -26,10 +30,7 @@ export const WalletsProvider: React.FC<{ children: React.ReactNode; token: strin
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
-
-      // Map _id to id for frontend compatibility
-      const mapped = data.wallets.map((w: any) => ({ ...w, id: w._id }));
-      setWallets(mapped);
+      setWallets(mapWallets(data.wallets));
       setError(null);
     } catch (e) {
       setError(String(e));
@@ -48,9 +49,7 @@ export const WalletsProvider: React.FC<{ children: React.ReactNode; token: strin
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
-
-      const mapped = data.wallets.map((w: any) => ({ ...w, id: w._id }));
-      setWallets(mapped);
+      setWallets(mapWallets(data.wallets));
       setError(null);
     } catch (e) {
       setError(String(e));
