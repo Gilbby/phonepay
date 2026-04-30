@@ -10,6 +10,7 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  Platform, 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -62,35 +63,41 @@ export default function WalletsScreen() {
     }
   };
 
-  const handleRemoveWallet = (wallet: { id: string; isPrimary?: boolean }) => {
-    if (wallet.isPrimary) {
-      Alert.alert('Cannot Remove', 'Set another wallet as primary first before removing this one.');
-      return;
-    }
-    Alert.alert(
-      'Remove Wallet',
-      'Are you sure you want to remove this wallet?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await fetch(`${API_URL}/wallets/${wallet.id}`, {
-                method: 'DELETE',
-                headers: authHeaders(token!),
-              });
-              await refresh();
-              setSelectedWallet(null);
-            } catch {
-              Alert.alert('Error', 'Failed to remove wallet.');
-            }
+    const handleRemoveWallet = async (wallet: { id: string; isPrimary?: boolean }) => {
+      if (wallet.isPrimary) {
+        Alert.alert('Cannot Remove', 'Set another wallet as primary first before removing this one.');
+        return;
+      }
+
+      Alert.alert(
+        'Remove Wallet',
+        'Are you sure you want to remove this wallet?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Remove',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                const response = await fetch(`${API_URL}/wallets/${wallet.id}`, {
+                  method: 'DELETE',
+                  headers: authHeaders(token!),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                  Alert.alert('Error', data.message || 'Failed to remove wallet.');
+                  return;
+                }
+                await refresh();
+                setSelectedWallet(null);
+              } catch {
+                Alert.alert('Error', 'Failed to remove wallet. Check your connection.');
+              }
+            },
           },
-        },
-      ]
-    );
-  };
+        ]
+      );
+    };
 
   const totalBalance = localWallets.reduce((sum, w) => sum + (w.balance || 0), 0);
 
@@ -154,7 +161,10 @@ export default function WalletsScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.removeButton}
-                      onPress={() => handleRemoveWallet(wallet)}
+                      onPress={() => {
+                        console.log('isPrimary:', wallet.isPrimary, 'id:', wallet.id);
+                        handleRemoveWallet(wallet);
+                      }}
                     >
                       <Ionicons name="trash-outline" size={16} color={COLORS.error} />
                       <Text style={styles.removeButtonText}>Remove Wallet</Text>
