@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,11 +17,12 @@ import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList, RootStackParamList } from '../../types';
 import { useApp } from '../../context/AppContext';
+import { API_URL, authHeaders } from '../../config/api';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'CreateAlias'>;
 
 export default function CreateAliasScreen({ navigation }: Props) {
-  const { login } = useApp();
+  const { token, setUser } = useApp();
   const [alias, setAlias] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -31,20 +33,37 @@ export default function CreateAliasScreen({ navigation }: Props) {
     setError('');
   };
 
-  const handleContinue = (): void => {
+  const handleContinue = async (): Promise<void> => {
     if (alias.length < 3) {
       setError('Alias must be at least 3 characters');
       return;
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${API_URL}/auth/create-alias`, {
+        method: 'POST',
+        headers: authHeaders(token!),
+        body: JSON.stringify({ alias }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'Failed to create alias');
+        return;
+      }
+
+      setUser(data.user);
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' as never }],
+      });
+    } catch {
+      Alert.alert('Error', 'Failed to create alias. Please try again.');
+    } finally {
       setIsLoading(false);
-      void (async () => {
-        await login('', '');
-        navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.replace('MainTabs');
-      })();
-    }, 1500);
+    }
   };
 
   const isValidAlias = alias.length >= 3;

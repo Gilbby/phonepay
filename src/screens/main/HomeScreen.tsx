@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { currentUser } from '../../data/mockData';
+import { useApp } from '../../context/AppContext';
 import { useWallets } from '../../context/WalletsContext';
 import { useTransactions } from '../../context/TransactionsContext';
 import WalletCard from '../../components/ui/WalletCard';
@@ -40,6 +40,7 @@ const QuickActionButton = ({
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [refreshing, setRefreshing] = useState(false);
   const { wallets: walletList } = useWallets();
+  const { user } = useApp();
 
   const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -62,8 +63,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hi, {currentUser.name.split(' ')[0]}</Text>
-            <Text style={styles.alias}>{currentUser.alias}</Text>
+            <Text style={styles.greeting}>Hi, {user?.alias?.replace('@', '') ?? 'there'}</Text>
+            <Text style={styles.alias}>{user?.alias ?? ''}</Text>
           </View>
           <TouchableOpacity style={styles.notificationButton}>
             <Ionicons name="notifications-outline" size={24} color={COLORS.textPrimary} />
@@ -76,7 +77,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           <Text style={styles.balanceAmount}>K{totalBalance.toLocaleString()}</Text>
           <View style={styles.balanceRow}>
             <Ionicons name="trending-up" size={16} color={COLORS.secondaryLight} />
-            <Text style={styles.balanceChange}>+12.5% this month</Text>
+            <Text style={styles.balanceChange}>{walletList.length} wallet{walletList.length !== 1 ? 's' : ''} linked</Text>
           </View>
         </View>
 

@@ -59,12 +59,13 @@ export default function OTPScreen({ navigation, route }: Props) {
 
     setIsLoading(true);
     try {
-      if (isNewUser) {
-        // New user — just navigate to CreateAlias
-        // login() will be called after alias creation
-        await new Promise((r) => setTimeout(r, 1500));
-        navigation.replace('CreateAlias');
-      } else {
+          if (isNewUser) {
+          // Verify OTP and get token for new user
+          await login(`+260${phoneNumber}`, otpString);
+          // login() sets isAuthenticated but isNewUser from backend will be true
+          // navigate to CreateAlias to complete registration
+          navigation.replace('CreateAlias');
+        } else {
         // Existing user — verify OTP against backend and login
         await login(`+260${phoneNumber}`, otpString);
         navigation.getParent()?.reset({

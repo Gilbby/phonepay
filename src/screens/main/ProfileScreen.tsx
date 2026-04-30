@@ -11,12 +11,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { currentUser } from '../../data/mockData';
 import { MainTabsParamList, RootStackParamList } from '../../types';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
 import type { ComponentProps } from 'react';
+import { useApp } from '../../context/AppContext';
+import { useWallets } from '../../context/WalletsContext';
+import { useTransactions } from '../../context/TransactionsContext';
 
 const SettingItem = ({
   icon,
@@ -71,9 +72,25 @@ const SettingToggle = ({
 );
 
 export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainTabsParamList, 'Profile'>) {
-  const [isAgentMode, setIsAgentMode] = useState(!!currentUser.isAgent);
+  const { user, logout } = useApp();
+  const { wallets } = useWallets();
+  const { transactions } = useTransactions();
+
+  const [isAgentMode, setIsAgentMode] = useState(!!user?.isAgent);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  // Calculate real stats
+  const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
+  const walletCount = wallets.length;
+  const transactionCount = transactions.length;
+
+  // Get initials from alias or phone
+  const getInitials = () => {
+    if (user?.alias) return user.alias.replace('@', '').slice(0, 2).toUpperCase();
+    if (user?.phone) return user.phone.slice(-2);
+    return 'PP';
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -84,9 +101,13 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            await logout();
             const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-            rootNav?.replace('Auth');
+            rootNav?.reset({
+              index: 0,
+              routes: [{ name: 'Auth' as never }],
+            });
           },
         },
       ]
@@ -94,7 +115,7 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
@@ -106,31 +127,29 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {currentUser.name.split(' ').map((n) => n[0]).join('')}
-              </Text>
+              <Text style={styles.avatarText}>{getInitials()}</Text>
             </View>
             <TouchableOpacity style={styles.cameraButton}>
               <Ionicons name="camera" size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.userName}>{currentUser.name}</Text>
-          <Text style={styles.userAlias}>{currentUser.alias}</Text>
-          <Text style={styles.userPhone}>{currentUser.phone}</Text>
+          <Text style={styles.userName}>{user?.alias ?? 'PhonePay User'}</Text>
+          <Text style={styles.userAlias}>{user?.alias ?? ''}</Text>
+          <Text style={styles.userPhone}>{user?.phone ?? ''}</Text>
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>K1,730</Text>
+              <Text style={styles.statValue}>K{totalBalance.toLocaleString()}</Text>
               <Text style={styles.statLabel}>Total Balance</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>24</Text>
+              <Text style={styles.statValue}>{transactionCount}</Text>
               <Text style={styles.statLabel}>Transactions</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>3</Text>
+              <Text style={styles.statValue}>{walletCount}</Text>
               <Text style={styles.statLabel}>Wallets</Text>
             </View>
           </View>
@@ -162,11 +181,13 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
               <View style={styles.agentInfo}>
                 <View style={styles.agentInfoRow}>
                   <Text style={styles.agentInfoLabel}>Agent Code</Text>
-                  <Text style={styles.agentInfoValue}>{currentUser.agentCode}</Text>
+                  <Text style={styles.agentInfoValue}>{user?.agentCode ?? 'N/A'}</Text>
                 </View>
                 <View style={styles.agentInfoRow}>
                   <Text style={styles.agentInfoLabel}>Total Earnings</Text>
-                  <Text style={[styles.agentInfoValue, { color: COLORS.success }]}>K{currentUser.agentEarnings}</Text>
+                  <Text style={[styles.agentInfoValue, { color: COLORS.success }]}>
+                    K{user?.agentEarnings ?? 0}
+                  </Text>
                 </View>
               </View>
             )}
