@@ -19,6 +19,8 @@ export interface Wallet {
   isPrimary: boolean;
   color?: string;
   icon?: string;
+  provider?: string;
+  phone?: string; 
 }
 
 export interface Transaction {

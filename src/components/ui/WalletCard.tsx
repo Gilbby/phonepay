@@ -9,8 +9,18 @@ interface Props {
   style?: StyleProp<ViewStyle>;
 }
 
-const WalletCard: React.FC<Props> = ({ wallet = {}, onPress, onLongPress, style }) => {
-  const { name = '', balance = 0, currency = '', color = '#999', isPrimary = false } = wallet as Wallet;
+const PROVIDER_COLORS: Record<string, string> = {
+  MTN: '#FFC107',
+  Airtel: '#F44336',
+  Zamtel: '#4CAF50',
+};
+
+const WalletCard: React.FC<Props> = ({ wallet = {} as Wallet, onPress, onLongPress, style }) => {
+  const provider = (wallet as any).provider || wallet.name || 'Unknown';
+  const phone = (wallet as any).phone || '';
+  const balance = wallet.balance || 0;
+  const isPrimary = wallet.isPrimary || false;
+  const color = PROVIDER_COLORS[provider] || wallet.color || '#999';
 
   return (
     <TouchableOpacity
@@ -19,11 +29,14 @@ const WalletCard: React.FC<Props> = ({ wallet = {}, onPress, onLongPress, style 
       onLongPress={() => onLongPress && onLongPress(wallet as Wallet)}
       activeOpacity={0.8}
     >
-      <View style={[styles.icon, { backgroundColor: color }]} />
+      <View style={[styles.icon, { backgroundColor: color }]}>
+        <Text style={styles.iconText}>{provider.charAt(0)}</Text>
+      </View>
 
       <View style={styles.info}>
-        <Text numberOfLines={1} style={styles.name}>{name}</Text>
-        <Text style={styles.balance}>{currency}{balance}</Text>
+        <Text numberOfLines={1} style={styles.name}>{provider}</Text>
+        <Text style={styles.phone}>{phone}</Text>
+        <Text style={styles.balance}>K{balance.toLocaleString()}</Text>
       </View>
 
       {isPrimary ? (
@@ -53,6 +66,13 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   info: {
     flex: 1,
@@ -61,6 +81,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#111',
+  },
+  phone: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
   },
   balance: {
     marginTop: 4,
