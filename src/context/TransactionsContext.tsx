@@ -11,20 +11,21 @@ type TransactionsContextValue = {
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
 
+// Map backend data to frontend shape
+const mapTransactions = (transactions: any[]): Transaction[] =>
+  transactions.map((t) => ({
+    ...t,
+    id: t._id,
+    date: t.createdAt,
+    recipientName: t.receiverId?.alias ?? t.receiverId?.phone ?? 'Unknown',
+    senderName: t.senderId?.alias ?? t.senderId?.phone ?? 'Unknown',
+    agentCode: t.agentId?.agentCode ?? '',
+  }));
+
 export const TransactionsProvider: React.FC<{ children: React.ReactNode; token: string | null }> = ({ children, token }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  const mapTransactions = (transactions: any[]) =>
-    transactions.map((t) => ({
-      ...t,
-      id: t._id,
-      date: t.createdAt,
-      recipientName: t.receiverId?.alias ?? t.receiverId?.phone ?? 'Unknown',
-      senderName: t.senderId?.alias ?? t.senderId?.phone ?? 'Unknown',
-      agentCode: t.agentId?.agentCode ?? '',
-    }));
 
   const refresh = async () => {
     if (!token) return;
@@ -35,7 +36,7 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode; token: 
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
-      setTransactions(mapTransactions(data.transactions)); // map backend -> frontend shape
+      setTransactions(mapTransactions(data.transactions));
       setError(null);
     } catch (e) {
       setError(String(e));
