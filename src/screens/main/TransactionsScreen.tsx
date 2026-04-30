@@ -39,16 +39,17 @@ export default function TransactionsScreen({}: Props) {
     { key: 'cash_out', label: 'Cash Out' },
   ];
 
-  const { transactions } = useTransactions();
+  const { transactions, refresh } = useTransactions();
 
   const filteredTransactions = transactions.filter((t) => {
     if (activeFilter === 'all') return true;
     return t.type === activeFilter;
   });
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+    await refresh();
+    setRefreshing(false);
   };
 
   const renderEmptyState = () => (

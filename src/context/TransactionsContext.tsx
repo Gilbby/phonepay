@@ -16,6 +16,16 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode; token: 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const mapTransactions = (transactions: any[]) =>
+    transactions.map((t) => ({
+      ...t,
+      id: t._id,
+      date: t.createdAt,
+      recipientName: t.receiverId?.alias ?? t.receiverId?.phone ?? 'Unknown',
+      senderName: t.senderId?.alias ?? t.senderId?.phone ?? 'Unknown',
+      agentCode: t.agentId?.agentCode ?? '',
+    }));
+
   const refresh = async () => {
     if (!token) return;
     setIsLoading(true);
@@ -25,7 +35,7 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode; token: 
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
-      setTransactions(data.transactions);
+      setTransactions(mapTransactions(data.transactions)); // map backend -> frontend shape
       setError(null);
     } catch (e) {
       setError(String(e));
