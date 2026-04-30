@@ -11,12 +11,12 @@ type TransactionsContextValue = {
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
 
-// Map backend data to frontend shape
 const mapTransactions = (transactions: any[]): Transaction[] =>
   transactions.map((t) => ({
     ...t,
     id: t._id,
-    date: t.createdAt,
+    date: t.createdAt ?? new Date().toISOString(),
+    currency: 'K',
     recipientName: t.receiverId?.alias ?? t.receiverId?.phone ?? 'Unknown',
     senderName: t.senderId?.alias ?? t.senderId?.phone ?? 'Unknown',
     agentCode: t.agentId?.agentCode ?? '',
@@ -35,10 +35,14 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode; token: 
         headers: authHeaders(token),
       });
       const data = await response.json();
+      console.log('transactions count:', data.transactions?.length);
       if (!response.ok) throw new Error(data.message);
-      setTransactions(mapTransactions(data.transactions));
+      const mapped = mapTransactions(data.transactions);
+      console.log('mapped count:', mapped.length);
+      setTransactions(mapped);
       setError(null);
     } catch (e) {
+      console.log('transactions error:', String(e));
       setError(String(e));
     } finally {
       setIsLoading(false);
@@ -46,6 +50,7 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode; token: 
   };
 
   useEffect(() => {
+    console.log('token changed:', token ? 'has token' : 'no token');
     if (token) void refresh();
   }, [token]);
 

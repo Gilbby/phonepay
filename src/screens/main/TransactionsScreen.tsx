@@ -65,11 +65,14 @@ export default function TransactionsScreen({}: Props) {
   );
 
   const groupedTransactions = filteredTransactions.reduce((groups: Record<string, Transaction[]>, transaction: Transaction) => {
-    const date = new Date(transaction.date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
+    const rawDate = new Date(transaction.date);
+    const date = isNaN(rawDate.getTime())
+      ? 'Recent'
+      : rawDate.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+        });
     if (!groups[date]) {
       groups[date] = [];
     }
@@ -81,6 +84,9 @@ export default function TransactionsScreen({}: Props) {
     date,
     data: items,
   }));
+
+  console.log('filteredTransactions:', filteredTransactions.length);
+  console.log('sections:', sections.length);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
