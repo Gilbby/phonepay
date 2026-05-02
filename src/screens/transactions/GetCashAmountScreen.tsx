@@ -8,6 +8,7 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
@@ -16,12 +17,17 @@ import calculateFee from '../../utils/calculateFee';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { RootStackScreenProps } from '../../types';
+import { useApp } from '../../context/AppContext';
+import { useTransactions } from '../../context/TransactionsContext';
+import { API_URL, authHeaders } from '../../config/api';
 
 export default function GetCashAmountScreen({ navigation, route }: RootStackScreenProps<'GetCashAmount'>) {
   const { agent } = route.params;
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { wallets } = useWallets();
+  const { token } = useApp();
+  const { refresh } = useTransactions();
   const primaryWallet = wallets.find((w) => w.isPrimary) || wallets[0] || { balance: 0, name: '', currency: 'K' };
 
   const numericAmount = parseFloat(amount) || 0;
@@ -32,19 +38,41 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
 
   const quickAmounts = [100, 200, 500, 1000];
 
-  const handleWithdraw = () => {
+  const handleWithdraw = async () => {
     if (!isValidAmount || hasInsufficientFunds) return;
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await fetch(`${API_URL}/transactions/cash-out`, {
+        method: 'POST',
+        headers: authHeaders(token!),
+        body: JSON.stringify({
+          agentCode: agent.code,
+          amount: numericAmount,
+          walletId: (primaryWallet as any).id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('Error', data.message || 'Withdrawal failed. Please try again.');
+        return;
+      }
+
+      await refresh();
+
       navigation.navigate('GetCashSuccess', {
         agent,
         amount: numericAmount,
         fee,
         total,
       });
-    }, 2000);
+    } catch {
+      Alert.alert('Error', 'Withdrawal failed. Check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -52,7 +80,6 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
@@ -139,8 +166,8 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
             Show this screen to the agent to complete your cash withdrawal.
           </Text>
         </View>
+      </ScrollView>
 
- </ScrollView>
       <View style={styles.footer}>
         <Button
           style={[
@@ -161,7 +188,6 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
         </Button>
       </View>
     </KeyboardAvoidingView>
-  
   );
 }
 

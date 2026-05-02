@@ -85,9 +85,6 @@ export default function TransactionsScreen({}: Props) {
     data: items,
   }));
 
-  console.log('filteredTransactions:', filteredTransactions.length);
-  console.log('sections:', sections.length);
-
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>

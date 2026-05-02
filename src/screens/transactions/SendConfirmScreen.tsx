@@ -6,21 +6,51 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { RootStackScreenProps } from '../../types';
+import { useApp } from '../../context/AppContext';
+import { useTransactions } from '../../context/TransactionsContext';
+import { API_URL, authHeaders } from '../../config/api';
 
 export default function SendConfirmScreen({ navigation, route }: RootStackScreenProps<'SendConfirm'>) {
   const { recipient, amount, fee, total, wallet } = route.params;
   const [isLoading, setIsLoading] = useState(false);
+  const { token } = useApp();
+  const { refresh } = useTransactions();
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await fetch(`${API_URL}/transactions/send`, {
+        method: 'POST',
+        headers: authHeaders(token!),
+        body: JSON.stringify({
+          recipientAlias: recipient.alias,
+          recipientPhone: recipient.phone,
+          amount,
+          senderWalletId: wallet.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('Error', data.message || 'Transaction failed. Please try again.');
+        return;
+      }
+
+      // Refresh transactions list
+      await refresh();
+
       navigation.navigate('SendSuccess', { recipient, amount, fee });
-    }, 2000);
+    } catch {
+      Alert.alert('Error', 'Transaction failed. Check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -78,8 +108,8 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>From Wallet</Text>
             <View style={styles.walletInfo}>
-              <View style={[styles.walletDot, { backgroundColor: wallet.color }]} />
-              <Text style={styles.detailText}>{wallet.name}</Text>
+              <View style={[styles.walletDot, { backgroundColor: (wallet as any).color ?? COLORS.primary }]} />
+              <Text style={styles.detailText}>{(wallet as any).provider ?? wallet.name}</Text>
             </View>
           </View>
         </View>
