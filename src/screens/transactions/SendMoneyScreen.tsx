@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,19 +8,23 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { users } from '../../data/mockData';
 import { RootStackScreenProps, User } from '../../types';
+import { useApp } from '../../context/AppContext';
+import { API_URL, authHeaders } from '../../config/api';
 
 const ContactItem: React.FC<{ user: User; onSelect: (u: User) => void }> = ({ user, onSelect }) => (
   <TouchableOpacity style={styles.contactItem} onPress={() => onSelect(user)} activeOpacity={0.7}>
     <View style={styles.contactAvatar}>
-      <Text style={styles.contactInitial}>{user.name.charAt(0)}</Text>
+      <Text style={styles.contactInitial}>
+        {(user.alias?.replace('@', '') ?? user.phone ?? '?').charAt(0).toUpperCase()}
+      </Text>
     </View>
     <View style={styles.contactInfo}>
-      <Text style={styles.contactName}>{user.name}</Text>
+      <Text style={styles.contactName}>{user.alias?.replace('@', '') ?? 'Unknown'}</Text>
       <Text style={styles.contactAlias}>{user.alias}</Text>
     </View>
     <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
@@ -30,15 +34,35 @@ const ContactItem: React.FC<{ user: User; onSelect: (u: User) => void }> = ({ us
 export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'SendMoney'>) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('alias');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const { token } = useApp();
 
-  const filteredUsers = users.filter((user: User) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(query) ||
-      user.alias.toLowerCase().includes(query) ||
-      user.phone.includes(query)
-    );
-  });
+  // Debounced search
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const response = await fetch(
+          `${API_URL}/users/search?q=${encodeURIComponent(searchQuery)}`,
+          { headers: authHeaders(token!) }
+        );
+        const data = await response.json();
+        if (response.ok) setSearchResults(data.users);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSelectUser = (user: User) => {
     navigation.navigate('SendAmount', { recipient: user });
@@ -46,13 +70,13 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
 
   const handleContinue = () => {
     if (searchQuery.length > 0) {
-      const mockRecipient = {
+      const recipient = {
         id: 'custom',
         name: searchQuery.startsWith('@') ? searchQuery.slice(1) : searchQuery,
         alias: searchQuery.startsWith('@') ? searchQuery : `@${searchQuery}`,
         phone: searchQuery,
       };
-      navigation.navigate('SendAmount', { recipient: mockRecipient });
+      navigation.navigate('SendAmount', { recipient });
     }
   };
 
@@ -102,23 +126,25 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
             autoCapitalize="none"
             keyboardType={selectedTab === 'phone' ? 'phone-pad' : 'default'}
           />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
+          {isSearching ? (
+            <ActivityIndicator size="small" color={COLORS.primary} />
+          ) : searchQuery.length > 0 ? (
+            <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
               <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
 
         <View style={styles.listHeader}>
           <Text style={styles.listTitle}>
-            {searchQuery ? 'Search Results' : 'Recent Contacts'}
+            {searchQuery ? 'Search Results' : 'Search for a recipient'}
           </Text>
         </View>
 
-        {filteredUsers.length > 0 ? (
+        {searchResults.length > 0 ? (
           <FlatList
-            data={filteredUsers.filter((u: User) => u.alias !== '@gibby')}
-            keyExtractor={(item) => item.id}
+            data={searchResults}
+            keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => (
               <ContactItem user={item} onSelect={handleSelectUser} />
             )}
@@ -128,9 +154,13 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
         ) : (
           <View style={styles.emptyState}>
             <Ionicons name="person-outline" size={48} color={COLORS.textMuted} />
-            <Text style={styles.emptyStateText}>No contacts found</Text>
+            <Text style={styles.emptyStateText}>
+              {searchQuery.length > 0 && !isSearching ? 'No users found' : 'Search by alias or phone'}
+            </Text>
             <Text style={styles.emptyStateSubtext}>
-              Try searching by name, alias, or phone number
+              {searchQuery.length > 0 && !isSearching
+                ? 'Try a different alias or phone number'
+                : 'Type at least 2 characters to search'}
             </Text>
           </View>
         )}
