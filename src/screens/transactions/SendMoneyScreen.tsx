@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { RootStackScreenProps, User } from '../../types';
@@ -37,6 +38,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { token } = useApp();
+  const insets = useSafeAreaInsets();
 
   // Debounced search
   useEffect(() => {
@@ -85,6 +87,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      {/* Scrollable content */}
       <View style={styles.content}>
         <View style={styles.tabs}>
           <TouchableOpacity
@@ -164,8 +167,11 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
             </Text>
           </View>
         )}
+      </View>
 
-        {searchQuery.length > 0 && (
+      {/* Button pinned outside scroll area, respects gesture bar */}
+      {searchQuery.length > 0 && (
+        <View style={styles.buttonWrapper}>
           <TouchableOpacity
             style={styles.continueButton}
             onPress={handleContinue}
@@ -176,8 +182,8 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
             </Text>
             <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -303,6 +309,14 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
     textAlign: 'center',
   },
+  buttonWrapper: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
+    backgroundColor: COLORS.background,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border ?? '#F0F0F0',
+    height: 142,
+  },
   continueButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -310,7 +324,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
-    marginBottom: SPACING.lg,
     gap: SPACING.sm,
     ...SHADOWS.md,
   },

@@ -78,7 +78,7 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
             />
           </View>
           <Text style={styles.balanceText}>
-            Available: K{(primaryWallet.balance || 0).toLocaleString()} ({primaryWallet.name})
+            Available: K{(primaryWallet.balance || 0).toLocaleString()} ({(primaryWallet as any).provider ?? primaryWallet.name ?? ''})
           </Text>
           {hasInsufficientFunds && (
             <Text style={styles.errorText}>Insufficient balance</Text>
