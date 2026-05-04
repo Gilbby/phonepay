@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,7 +41,6 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
   const { token } = useApp();
   const insets = useSafeAreaInsets();
 
-  // Debounced search
   useEffect(() => {
     if (searchQuery.length < 2) {
       setSearchResults([]);
@@ -70,15 +70,29 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
     navigation.navigate('SendAmount', { recipient: user });
   };
 
-  const handleContinue = () => {
-    if (searchQuery.length > 0) {
-      const recipient = {
-        id: 'custom',
-        name: searchQuery.startsWith('@') ? searchQuery.slice(1) : searchQuery,
-        alias: searchQuery.startsWith('@') ? searchQuery : `@${searchQuery}`,
-        phone: searchQuery,
-      };
-      navigation.navigate('SendAmount', { recipient });
+  const handleContinue = async () => {
+    if (searchQuery.length === 0) return;
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `${API_URL}/users/search?q=${encodeURIComponent(searchQuery)}`,
+        { headers: authHeaders(token!) }
+      );
+      const data = await response.json();
+
+      if (response.ok && data.users.length > 0) {
+        navigation.navigate('SendAmount', { recipient: data.users[0] });
+      } else {
+        Alert.alert(
+          'User Not Found',
+          `No user found with "${searchQuery}". Please check and try again.`
+        );
+      }
+    } catch {
+      Alert.alert('Error', 'Could not verify recipient. Check your connection.');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -87,7 +101,6 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Scrollable content */}
       <View style={styles.content}>
         <View style={styles.tabs}>
           <TouchableOpacity
@@ -169,18 +182,24 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
         )}
       </View>
 
-      {/* Button pinned outside scroll area, respects gesture bar */}
       {searchQuery.length > 0 && (
         <View style={styles.buttonWrapper}>
           <TouchableOpacity
             style={styles.continueButton}
             onPress={handleContinue}
             activeOpacity={0.8}
+            disabled={isSearching}
           >
-            <Text style={styles.continueButtonText}>
-              Send to "{searchQuery}"
-            </Text>
-            <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+            {isSearching ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <>
+                <Text style={styles.continueButtonText}>
+                  Send to "{searchQuery}"
+                </Text>
+                <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       )}
@@ -312,10 +331,10 @@ const styles = StyleSheet.create({
   buttonWrapper: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border ?? '#F0F0F0',
-    height: 142,
+    borderTopColor: COLORS.border,
+    paddingBottom: SPACING.lg,
   },
   continueButton: {
     flexDirection: 'row',
