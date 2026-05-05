@@ -18,6 +18,7 @@ import type { ComponentProps } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useWallets } from '../../context/WalletsContext';
 import { useTransactions } from '../../context/TransactionsContext';
+import { API_URL, authHeaders } from '../../config/api';
 
 const SettingItem = ({
   icon,
@@ -72,7 +73,7 @@ const SettingToggle = ({
 );
 
 export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainTabsParamList, 'Profile'>) {
-  const { user, logout } = useApp();
+  const { user, token, logout, setUser } = useApp();
   const { wallets } = useWallets();
   const { transactions } = useTransactions();
 
@@ -80,16 +81,35 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  // Calculate real stats
   const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
   const walletCount = wallets.length;
   const transactionCount = transactions.length;
 
-  // Get initials from alias or phone
   const getInitials = () => {
     if (user?.alias) return user.alias.replace('@', '').slice(0, 2).toUpperCase();
     if (user?.phone) return user.phone.slice(-2);
     return 'PP';
+  };
+
+  const handleAgentModeToggle = async (value: boolean) => {
+    setIsAgentMode(value);
+    try {
+      const response = await fetch(`${API_URL}/users/agent-mode`, {
+        method: 'PATCH',
+        headers: authHeaders(token!),
+        body: JSON.stringify({ isAgent: value }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setUser(data.user);
+      } else {
+        setIsAgentMode(!value);
+        Alert.alert('Error', data.message || 'Failed to update agent mode.');
+      }
+    } catch {
+      setIsAgentMode(!value);
+      Alert.alert('Error', 'Could not update agent mode. Check your connection.');
+    }
   };
 
   const handleLogout = () => {
@@ -172,7 +192,7 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
               </View>
               <Switch
                 value={isAgentMode}
-                onValueChange={setIsAgentMode}
+                onValueChange={handleAgentModeToggle}
                 trackColor={{ false: COLORS.border, true: COLORS.warning }}
                 thumbColor={isAgentMode ? COLORS.white : COLORS.textMuted}
               />

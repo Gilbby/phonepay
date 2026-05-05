@@ -6,16 +6,26 @@ import {
   TouchableOpacity,
   Share,
   ScrollView,
+  Clipboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import QRCode from 'react-native-qrcode-svg';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { currentUser } from '../../data/mockData';
 import { RootStackScreenProps } from '../../types';
+import { useApp } from '../../context/AppContext';
 
 export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<'ReceiveMoney'>) {
   const [copied, setCopied] = useState(false);
+  const { user } = useApp();
+
+  const qrValue = JSON.stringify({
+    alias: user?.alias ?? '',
+    phone: user?.phone ?? '',
+    app: 'PhonePay',
+  });
 
   const handleCopy = () => {
+    Clipboard.setString(user?.alias ?? '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -23,10 +33,10 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Send me money on PhonePay! My alias is ${currentUser.alias}`,
+        message: `Send me money on PhonePay! My alias is ${user?.alias ?? ''}`,
       });
-    } catch (error) {
-      // UI only - no error handling needed
+    } catch {
+      // UI only
     }
   };
 
@@ -46,21 +56,22 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
 
         <View style={styles.qrCard}>
           <View style={styles.qrContainer}>
-            <View style={styles.qrPlaceholder}>
-              <View style={styles.qrInner}>
-                <Ionicons name="qr-code" size={120} color={COLORS.textPrimary} />
-              </View>
-            </View>
+            <QRCode
+              value={qrValue}
+              size={180}
+              color={COLORS.textPrimary}
+              backgroundColor={COLORS.white}
+            />
           </View>
-          
+
           <View style={styles.userInfo}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {currentUser.name.charAt(0)}
+                {user?.alias?.replace('@', '').charAt(0).toUpperCase() ?? 'P'}
               </Text>
             </View>
-            <Text style={styles.userName}>{currentUser.name}</Text>
-            <Text style={styles.userAlias}>{currentUser.alias}</Text>
+            <Text style={styles.userName}>{user?.alias?.replace('@', '') ?? 'PhonePay User'}</Text>
+            <Text style={styles.userAlias}>{user?.alias ?? ''}</Text>
           </View>
         </View>
 
@@ -70,7 +81,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
             <Text style={styles.aliasLabel}>Your Alias</Text>
           </View>
           <View style={styles.aliasRow}>
-            <Text style={styles.aliasValue}>{currentUser.alias}</Text>
+            <Text style={styles.aliasValue}>{user?.alias ?? ''}</Text>
             <TouchableOpacity
               style={[styles.copyButton, copied && styles.copyButtonSuccess]}
               onPress={handleCopy}
@@ -93,7 +104,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
             <Ionicons name="call" size={20} color={COLORS.secondary} />
             <Text style={styles.phoneLabel}>Phone Number</Text>
           </View>
-          <Text style={styles.phoneValue}>{currentUser.phone}</Text>
+          <Text style={styles.phoneValue}>{user?.phone ?? ''}</Text>
         </View>
 
         <View style={styles.instructionsCard}>
@@ -177,20 +188,9 @@ const styles = StyleSheet.create({
   },
   qrContainer: {
     marginBottom: SPACING.md,
-  },
-  qrPlaceholder: {
-    width: 180,
-    height: 180,
-    backgroundColor: COLORS.background,
+    padding: SPACING.sm,
+    backgroundColor: COLORS.white,
     borderRadius: RADIUS.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    borderStyle: 'dashed',
-  },
-  qrInner: {
-    padding: SPACING.md,
   },
   userInfo: {
     alignItems: 'center',
