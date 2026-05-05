@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -66,15 +67,29 @@ export default function GetCashScreen({ navigation }: RootStackScreenProps<'GetC
     navigation.navigate('GetCashAmount', { agent });
   };
 
-  const handleContinue = () => {
-    if (agentCode.length > 0) {
-      const customAgent: Agent = {
-        id: 'custom',
-        code: agentCode.toUpperCase(),
-        name: 'Agent ' + agentCode.toUpperCase(),
-        location: 'Unknown',
-      };
-      navigation.navigate('GetCashAmount', { agent: customAgent });
+  const handleContinue = async () => {
+    if (agentCode.length === 0) return;
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `${API_URL}/users/agents/search?q=${encodeURIComponent(agentCode)}`,
+        { headers: authHeaders(token!) }
+      );
+      const data = await response.json();
+
+      if (response.ok && data.agents.length > 0) {
+        navigation.navigate('GetCashAmount', { agent: data.agents[0] });
+      } else {
+        Alert.alert(
+          'Agent Not Found',
+          `No agent found with code "${agentCode}". Please check and try again.`
+        );
+      }
+    } catch {
+      Alert.alert('Error', 'Could not verify agent. Check your connection.');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -156,11 +171,18 @@ export default function GetCashScreen({ navigation }: RootStackScreenProps<'GetC
               style={styles.continueButton}
               onPress={handleContinue}
               activeOpacity={0.8}
+              disabled={isSearching}
             >
-              <Text style={styles.continueButtonText}>
-                Continue with "{agentCode.toUpperCase()}"
-              </Text>
-              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+              {isSearching ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Text style={styles.continueButtonText}>
+                    Continue with "{agentCode.toUpperCase()}"
+                  </Text>
+                  <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+                </>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -304,7 +326,9 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
   footer: {
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

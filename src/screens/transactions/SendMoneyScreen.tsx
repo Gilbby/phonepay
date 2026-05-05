@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { RootStackScreenProps, User } from '../../types';
@@ -39,7 +39,6 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { token } = useApp();
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (searchQuery.length < 2) {
@@ -97,113 +96,116 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.content}>
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === 'alias' && styles.tabActive]}
-            onPress={() => setSelectedTab('alias')}
-          >
-            <Ionicons
-              name="at"
-              size={18}
-              color={selectedTab === 'alias' ? COLORS.primary : COLORS.textMuted}
-            />
-            <Text style={[styles.tabText, selectedTab === 'alias' && styles.tabTextActive]}>
-              Alias
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === 'phone' && styles.tabActive]}
-            onPress={() => setSelectedTab('phone')}
-          >
-            <Ionicons
-              name="call"
-              size={18}
-              color={selectedTab === 'phone' ? COLORS.primary : COLORS.textMuted}
-            />
-            <Text style={[styles.tabText, selectedTab === 'phone' && styles.tabTextActive]}>
-              Phone
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={COLORS.textMuted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={selectedTab === 'alias' ? 'Enter alias (e.g. @john)' : 'Enter phone number'}
-            placeholderTextColor={COLORS.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-            keyboardType={selectedTab === 'phone' ? 'phone-pad' : 'default'}
-          />
-          {isSearching ? (
-            <ActivityIndicator size="small" color={COLORS.primary} />
-          ) : searchQuery.length > 0 ? (
-            <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
-              <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <View style={styles.content}>
+          <View style={styles.tabs}>
+            <TouchableOpacity
+              style={[styles.tab, selectedTab === 'alias' && styles.tabActive]}
+              onPress={() => setSelectedTab('alias')}
+            >
+              <Ionicons
+                name="at"
+                size={18}
+                color={selectedTab === 'alias' ? COLORS.primary : COLORS.textMuted}
+              />
+              <Text style={[styles.tabText, selectedTab === 'alias' && styles.tabTextActive]}>
+                Alias
+              </Text>
             </TouchableOpacity>
-          ) : null}
-        </View>
+            <TouchableOpacity
+              style={[styles.tab, selectedTab === 'phone' && styles.tabActive]}
+              onPress={() => setSelectedTab('phone')}
+            >
+              <Ionicons
+                name="call"
+                size={18}
+                color={selectedTab === 'phone' ? COLORS.primary : COLORS.textMuted}
+              />
+              <Text style={[styles.tabText, selectedTab === 'phone' && styles.tabTextActive]}>
+                Phone
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>
-            {searchQuery ? 'Search Results' : 'Search for a recipient'}
-          </Text>
-        </View>
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color={COLORS.textMuted} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={selectedTab === 'alias' ? 'Enter alias (e.g. @john)' : 'Enter phone number'}
+              placeholderTextColor={COLORS.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              keyboardType={selectedTab === 'phone' ? 'phone-pad' : 'default'}
+            />
+            {isSearching ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : searchQuery.length > 0 ? (
+              <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
+                <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
 
-        {searchResults.length > 0 ? (
-          <FlatList
-            data={searchResults}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => (
-              <ContactItem user={item} onSelect={handleSelectUser} />
-            )}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-          />
-        ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="person-outline" size={48} color={COLORS.textMuted} />
-            <Text style={styles.emptyStateText}>
-              {searchQuery.length > 0 && !isSearching ? 'No users found' : 'Search by alias or phone'}
-            </Text>
-            <Text style={styles.emptyStateSubtext}>
-              {searchQuery.length > 0 && !isSearching
-                ? 'Try a different alias or phone number'
-                : 'Type at least 2 characters to search'}
+          <View style={styles.listHeader}>
+            <Text style={styles.listTitle}>
+              {searchQuery ? 'Search Results' : 'Search for a recipient'}
             </Text>
           </View>
-        )}
-      </View>
 
-      {searchQuery.length > 0 && (
-        <View style={styles.buttonWrapper}>
-          <TouchableOpacity
-            style={styles.continueButton}
-            onPress={handleContinue}
-            activeOpacity={0.8}
-            disabled={isSearching}
-          >
-            {isSearching ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <>
-                <Text style={styles.continueButtonText}>
-                  Send to "{searchQuery}"
-                </Text>
-                <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
-              </>
-            )}
-          </TouchableOpacity>
+          {searchResults.length > 0 ? (
+            <FlatList
+              data={searchResults}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={({ item }) => (
+                <ContactItem user={item} onSelect={handleSelectUser} />
+              )}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+            />
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons name="person-outline" size={48} color={COLORS.textMuted} />
+              <Text style={styles.emptyStateText}>
+                {searchQuery.length > 0 && !isSearching ? 'No users found' : 'Search by alias or phone'}
+              </Text>
+              <Text style={styles.emptyStateSubtext}>
+                {searchQuery.length > 0 && !isSearching
+                  ? 'Try a different alias or phone number'
+                  : 'Type at least 2 characters to search'}
+              </Text>
+            </View>
+          )}
         </View>
-      )}
-    </KeyboardAvoidingView>
+
+        {searchQuery.length > 0 && (
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={styles.continueButton}
+              onPress={handleContinue}
+              activeOpacity={0.8}
+              disabled={isSearching}
+            >
+              {isSearching ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Text style={styles.continueButtonText}>
+                    Send to "{searchQuery}"
+                  </Text>
+                  <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -328,13 +330,13 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
     textAlign: 'center',
   },
-  buttonWrapper: {
+  footer: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    paddingBottom: SPACING.lg,
   },
   continueButton: {
     flexDirection: 'row',
