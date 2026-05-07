@@ -4,8 +4,8 @@ import { Platform } from 'react-native';
 // When running on iOS simulator or Expo Go, localhost = your machine IP
 const BASE_URL =
   Platform.OS === 'android'
-    ? 'http://10.138.104.59:3000/api'
-    : 'http://10.138.104.59:3000/api';/* : 'http://localhost:3000/api'; */
+    ? 'http://10.182.133.59:3000/api'
+    : 'http://10.182.133.59:3000/api';/* : 'http://localhost:3000/api'; */
 
 export const API_URL = BASE_URL;
 
