@@ -21,6 +21,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
   const qrValue = JSON.stringify({
     alias: user?.alias ?? '',
     phone: user?.phone ?? '',
+    agentCode: user?.isAgent ? user?.agentCode : undefined,
     app: 'PhonePay',
   });
 
