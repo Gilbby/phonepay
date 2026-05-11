@@ -33,13 +33,12 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
   const numericAmount = parseFloat(amount) || 0;
   const fee = calculateFee(numericAmount);
   const total = numericAmount + fee;
-  const hasInsufficientFunds = total > (primaryWallet.balance || 0);
   const isValidAmount = numericAmount > 0;
 
   const quickAmounts = [100, 200, 500, 1000];
 
   const handleWithdraw = async () => {
-    if (!isValidAmount || hasInsufficientFunds) return;
+    if (!isValidAmount) return;
 
     setIsLoading(true);
     try {
@@ -112,11 +111,8 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
             />
           </View>
           <Text style={styles.balanceText}>
-            Available: K{(primaryWallet.balance || 0).toLocaleString()} ({primaryWallet.name})
+            Withdrawing from {(primaryWallet as any).provider ?? primaryWallet.name ?? ''} wallet
           </Text>
-          {hasInsufficientFunds && (
-            <Text style={styles.errorText}>Insufficient balance</Text>
-          )}
         </View>
 
         <View style={styles.quickAmountsContainer}>
@@ -172,10 +168,10 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
         <Button
           style={[
             styles.withdrawButton,
-            (!isValidAmount || hasInsufficientFunds) && styles.withdrawButtonDisabled,
+            !isValidAmount && styles.withdrawButtonDisabled,
           ]}
           onPress={handleWithdraw}
-          disabled={!isValidAmount || hasInsufficientFunds || isLoading}
+          disabled={!isValidAmount || isLoading}
         >
           {isLoading ? (
             <ActivityIndicator color={COLORS.white} />
@@ -264,11 +260,6 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.sm,
     color: COLORS.textMuted,
     marginTop: SPACING.md,
-  },
-  errorText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.error,
-    marginTop: SPACING.xs,
   },
   quickAmountsContainer: {
     flexDirection: 'row',

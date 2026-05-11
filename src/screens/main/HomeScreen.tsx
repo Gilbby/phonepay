@@ -39,6 +39,7 @@ const QuickActionButton = ({
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [refreshing, setRefreshing] = useState(false);
+  const [showBalance, setShowBalance] = useState(false);
   const { wallets: walletList } = useWallets();
   const { user } = useApp();
 
@@ -73,11 +74,24 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
 
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={styles.balanceAmount}>K{totalBalance.toLocaleString()}</Text>
+          <View style={styles.balanceLabelRow}>
+            <Text style={styles.balanceLabel}>Total Balance</Text>
+            <TouchableOpacity onPress={() => setShowBalance(!showBalance)}>
+              <Ionicons
+                name={showBalance ? 'eye' : 'eye-off'}
+                size={20}
+                color="rgba(255, 255, 255, 0.7)"
+              />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.balanceAmount}>
+            {showBalance ? `K${totalBalance.toLocaleString()}` : '••••••'}
+          </Text>
           <View style={styles.balanceRow}>
             <Ionicons name="trending-up" size={16} color={COLORS.secondaryLight} />
-            <Text style={styles.balanceChange}>{walletList.length} wallet{walletList.length !== 1 ? 's' : ''} linked</Text>
+            <Text style={styles.balanceChange}>
+              {walletList.length} wallet{walletList.length !== 1 ? 's' : ''} linked
+            </Text>
           </View>
         </View>
 
@@ -108,7 +122,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Wallets</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Wallets')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Wallets')}>
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
@@ -192,10 +206,15 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     ...SHADOWS.lg,
   },
+  balanceLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
   balanceLabel: {
     fontSize: FONTS.sizes.sm,
     color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: SPACING.xs,
   },
   balanceAmount: {
     fontSize: 36,

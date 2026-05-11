@@ -25,13 +25,12 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
   const numericAmount = parseFloat(amount) || 0;
   const fee = calculateFee(numericAmount);
   const total = numericAmount + fee;
-  const hasInsufficientFunds = total > (primaryWallet.balance || 0);
   const isValidAmount = numericAmount > 0;
 
   const quickAmounts = [50, 100, 200, 500];
 
   const handleContinue = () => {
-    if (!isValidAmount || hasInsufficientFunds) return;
+    if (!isValidAmount) return;
     navigation.navigate('SendConfirm', {
       recipient,
       amount: numericAmount,
@@ -78,11 +77,8 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
             />
           </View>
           <Text style={styles.balanceText}>
-            Available: K{(primaryWallet.balance || 0).toLocaleString()} ({(primaryWallet as any).provider ?? primaryWallet.name ?? ''})
+            Sending from {(primaryWallet as any).provider ?? primaryWallet.name ?? ''} wallet
           </Text>
-          {hasInsufficientFunds && (
-            <Text style={styles.errorText}>Insufficient balance</Text>
-          )}
         </View>
 
         <View style={styles.quickAmountsContainer}>
@@ -130,10 +126,10 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
         <Button
           style={[
             styles.continueButton,
-            (!isValidAmount || hasInsufficientFunds) && styles.continueButtonDisabled,
+            !isValidAmount && styles.continueButtonDisabled,
           ]}
           onPress={handleContinue}
-          disabled={!isValidAmount || hasInsufficientFunds}
+          disabled={!isValidAmount}
         >
           <Text style={styles.continueButtonText}>Continue</Text>
           <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
@@ -220,11 +216,6 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.sm,
     color: COLORS.textMuted,
     marginTop: SPACING.md,
-  },
-  errorText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.error,
-    marginTop: SPACING.xs,
   },
   quickAmountsContainer: {
     flexDirection: 'row',

@@ -5,12 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Alert,
   Modal,
   TextInput,
   ActivityIndicator,
-  Platform, 
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,7 +23,7 @@ export default function WalletsScreen() {
   const [selectedWallet, setSelectedWallet] = useState<{ id: string } | null>(null);
   const { wallets: localWallets, refresh, setPrimary } = useWallets();
   const { token } = useApp();
-  const [showBalance, setShowBalance] = useState(true);
+  const [showBalance, setShowBalance] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newPhone, setNewPhone] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -63,41 +62,41 @@ export default function WalletsScreen() {
     }
   };
 
-    const handleRemoveWallet = async (wallet: { id: string; isPrimary?: boolean }) => {
-      if (wallet.isPrimary) {
-        Alert.alert('Cannot Remove', 'Set another wallet as primary first before removing this one.');
-        return;
-      }
+  const handleRemoveWallet = async (wallet: { id: string; isPrimary?: boolean }) => {
+    if (wallet.isPrimary) {
+      Alert.alert('Cannot Remove', 'Set another wallet as primary first before removing this one.');
+      return;
+    }
 
-      Alert.alert(
-        'Remove Wallet',
-        'Are you sure you want to remove this wallet?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Remove',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                const response = await fetch(`${API_URL}/wallets/${wallet.id}`, {
-                  method: 'DELETE',
-                  headers: authHeaders(token!),
-                });
-                const data = await response.json();
-                if (!response.ok) {
-                  Alert.alert('Error', data.message || 'Failed to remove wallet.');
-                  return;
-                }
-                await refresh();
-                setSelectedWallet(null);
-              } catch {
-                Alert.alert('Error', 'Failed to remove wallet. Check your connection.');
+    Alert.alert(
+      'Remove Wallet',
+      'Are you sure you want to remove this wallet?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${API_URL}/wallets/${wallet.id}`, {
+                method: 'DELETE',
+                headers: authHeaders(token!),
+              });
+              const data = await response.json();
+              if (!response.ok) {
+                Alert.alert('Error', data.message || 'Failed to remove wallet.');
+                return;
               }
-            },
+              await refresh();
+              setSelectedWallet(null);
+            } catch {
+              Alert.alert('Error', 'Failed to remove wallet. Check your connection.');
+            }
           },
-        ]
-      );
-    };
+        },
+      ]
+    );
+  };
 
   const totalBalance = localWallets.reduce((sum, w) => sum + (w.balance || 0), 0);
 
@@ -161,10 +160,7 @@ export default function WalletsScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.removeButton}
-                      onPress={() => {
-                        console.log('isPrimary:', wallet.isPrimary, 'id:', wallet.id);
-                        handleRemoveWallet(wallet);
-                      }}
+                      onPress={() => handleRemoveWallet(wallet)}
                     >
                       <Ionicons name="trash-outline" size={16} color={COLORS.error} />
                       <Text style={styles.removeButtonText}>Remove Wallet</Text>
@@ -194,19 +190,6 @@ export default function WalletsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Wallet Settings</Text>
           <View style={styles.settingsCard}>
-            <View style={styles.settingRow}>
-              <View style={styles.settingInfo}>
-                <Ionicons name="eye-outline" size={20} color={COLORS.textSecondary} />
-                <Text style={styles.settingLabel}>Show Balance</Text>
-              </View>
-              <Switch
-                value={showBalance}
-                onValueChange={setShowBalance}
-                trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
-                thumbColor={showBalance ? COLORS.primary : COLORS.textMuted}
-              />
-            </View>
-            <View style={styles.settingDivider} />
             <TouchableOpacity style={styles.settingRow}>
               <View style={styles.settingInfo}>
                 <Ionicons name="notifications-outline" size={20} color={COLORS.textSecondary} />
