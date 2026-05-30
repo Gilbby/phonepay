@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { useWallets } from '../../context/WalletsContext';
 import calculateFee from '../../utils/calculateFee';
@@ -20,6 +21,7 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
   const { recipient } = route.params;
   const [amount, setAmount] = useState('');
   const { wallets } = useWallets();
+  const insets = useSafeAreaInsets();
   const primaryWallet = wallets.find((w) => w.isPrimary) || wallets[0] || { id: 'unknown', isPrimary: false, balance: 0, name: '', currency: 'K' };
 
   const numericAmount = parseFloat(amount) || 0;
@@ -122,7 +124,7 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <Button
           style={[
             styles.continueButton,
@@ -279,7 +281,8 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   footer: {
-    padding: SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

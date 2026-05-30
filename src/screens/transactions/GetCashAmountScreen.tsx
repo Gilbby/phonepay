@@ -22,6 +22,7 @@ import { RootStackScreenProps } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { useTransactions } from '../../context/TransactionsContext';
 import { API_URL, authHeaders } from '../../config/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PIN_LENGTH = 4;
 const NUMPAD_KEYS = [
@@ -42,6 +43,7 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
   const { wallets } = useWallets();
   const { token } = useApp();
   const { refresh } = useTransactions();
+  const insets = useSafeAreaInsets();
   const primaryWallet = wallets.find((w) => w.isPrimary) || wallets[0] || { balance: 0, name: '', currency: 'K' };
 
   const numericAmount = parseFloat(amount) || 0;
@@ -218,7 +220,7 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 55 }]}>
         <Button
           style={[
             styles.withdrawButton,
@@ -485,11 +487,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   footer: {
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    height: 142,
   },
   withdrawButton: {
     flexDirection: 'row',

@@ -51,23 +51,8 @@ export default function AppLockScreen({ onUnlock, onLockout }: Props) {
     ]).start(() => onDone?.());
   };
 
-  const triggerBiometric = async () => {
-    setMode('biometric');
-    try {
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Verify your identity',
-        disableDeviceFallback: false,
-      });
-      if (result.success) {
-        onUnlock();
-      } else {
-        setMode('pin');
-      }
-    } catch {
-      setMode('pin');
-    }
-  };
-
+  // Determine mode on mount — never call authenticateAsync here so the
+  // 'biometric' render is committed before the prompt fires.
   useEffect(() => {
     const init = async () => {
       const biometricEnabled = await AsyncStorage.getItem('biometric_enabled');
@@ -75,15 +60,32 @@ export default function AppLockScreen({ onUnlock, onLockout }: Props) {
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       const supported = hasHardware && isEnrolled;
       setBiometricsAvailable(supported);
-
-      if (biometricEnabled === 'true' && supported) {
-        void triggerBiometric();
-      } else {
-        setMode('pin');
-      }
+      setMode(supported && biometricEnabled !== 'false' ? 'biometric' : 'pin');
     };
     void init();
   }, []);
+
+  // Fire the prompt only after the 'biometric' screen has rendered.
+  // Also re-fires when the user presses "Try biometrics again".
+  useEffect(() => {
+    if (mode !== 'biometric') return;
+    const runBiometric = async () => {
+      try {
+        const result = await LocalAuthentication.authenticateAsync({
+          promptMessage: 'Verify your identity',
+          disableDeviceFallback: false,
+        });
+        if (result.success) {
+          onUnlock();
+        } else {
+          setMode('pin');
+        }
+      } catch {
+        setMode('pin');
+      }
+    };
+    void runBiometric();
+  }, [mode]);
 
   const handlePinFailure = (count: number) => {
     shake(() => {
@@ -230,7 +232,7 @@ export default function AppLockScreen({ onUnlock, onLockout }: Props) {
         )}
 
         {biometricsAvailable && (
-          <TouchableOpacity style={styles.textLink} onPress={() => void triggerBiometric()}>
+          <TouchableOpacity style={styles.textLink} onPress={() => setMode('biometric')}>
             <Text style={styles.textLinkText}>Try biometrics again</Text>
           </TouchableOpacity>
         )}

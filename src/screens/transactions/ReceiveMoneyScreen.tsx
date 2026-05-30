@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { RootStackScreenProps } from '../../types';
 import { useApp } from '../../context/AppContext';
@@ -17,6 +18,7 @@ import { useApp } from '../../context/AppContext';
 export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<'ReceiveMoney'>) {
   const [copied, setCopied] = useState(false);
   const { user } = useApp();
+  const insets = useSafeAreaInsets();
 
   const qrValue = JSON.stringify({
     alias: user?.alias ?? '',
@@ -137,7 +139,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={styles.shareButton}
           onPress={handleShare}
@@ -326,7 +328,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   footer: {
-    padding: SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

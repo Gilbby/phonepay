@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
@@ -42,6 +42,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
   const [scanned, setScanned] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const { token } = useApp();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (selectedTab === 'scan') {
@@ -321,7 +322,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
         </View>
 
         {searchQuery.length > 0 && selectedTab !== 'scan' && (
-          <View style={styles.footer}>
+          <View style={[styles.footer, { paddingBottom: insets.bottom + 55 }]}>
             <TouchableOpacity
               style={styles.continueButton}
               onPress={handleContinue}
@@ -470,7 +471,6 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
-    paddingBottom: SPACING.lg,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
@@ -492,8 +492,9 @@ const styles = StyleSheet.create({
   },
   // Scanner styles
   scannerContainer: {
-    flex: 1,
+    height: 500,
     marginTop: SPACING.md,
+    marginBottom: SPACING.lg,
     borderRadius: RADIUS.lg,
     overflow: 'hidden',
   },

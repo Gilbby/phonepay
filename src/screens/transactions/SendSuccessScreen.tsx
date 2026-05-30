@@ -7,13 +7,14 @@ import {
   Animated,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { RootStackScreenProps } from '../../types';
 
 export default function SendSuccessScreen({ navigation, route }: RootStackScreenProps<'SendSuccess'>) {
   const { recipient, amount, fee } = route.params;
+  const insets = useSafeAreaInsets();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -102,7 +103,7 @@ export default function SendSuccessScreen({ navigation, route }: RootStackScreen
         </Animated.View>
       </ScrollView>
 
-      <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.footer, { opacity: fadeAnim, paddingBottom: insets.bottom + 1 }]}>
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={handleSendAnother}
@@ -258,7 +259,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    padding: SPACING.lg,
+    paddingTop: SPACING.md,
+    paddingHorizontal: SPACING.lg,
     gap: SPACING.md,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,

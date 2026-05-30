@@ -16,6 +16,7 @@ import { RootStackScreenProps } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { useTransactions } from '../../context/TransactionsContext';
 import { API_URL, authHeaders } from '../../config/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PIN_LENGTH = 4;
 const NUMPAD_KEYS = [
@@ -34,6 +35,7 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const { token } = useApp();
   const { refresh } = useTransactions();
+  const insets = useSafeAreaInsets();
 
   const shake = () => {
     Animated.sequence([
@@ -177,7 +179,7 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => navigation.goBack()}
@@ -410,7 +412,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    padding: SPACING.lg,
+    height: 100,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
     gap: SPACING.md,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
