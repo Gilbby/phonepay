@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
+import bcrypt from 'bcryptjs';
 import { COLORS, FONTS, SPACING } from '../../constants/theme';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types';
@@ -92,6 +94,9 @@ export default function SetupPinScreen({ navigation }: Props) {
         setPhase('enter');
         return;
       }
+
+      const hash = await bcrypt.hash(pinString, 10);
+      await SecureStore.setItemAsync('pin_hash', hash);
 
       navigation.replace('SetupBiometric');
     } catch {

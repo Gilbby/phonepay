@@ -90,11 +90,13 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
   }, []);
 
   const handleBiometricToggle = async (value: boolean) => {
+    setBiometricEnabled(value);
     if (value) {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       if (!hasHardware || !isEnrolled) {
-        Alert.alert('Not available', 'Biometric authentication is not set up on this device.');
+        setBiometricEnabled(false);
+        Alert.alert('Biometrics Not Available', 'Your device does not support biometric authentication.');
         return;
       }
       const result = await LocalAuthentication.authenticateAsync({
@@ -102,10 +104,13 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
         cancelLabel: 'Cancel',
         disableDeviceFallback: false,
       });
-      if (!result.success) return;
+      if (!result.success) {
+        setBiometricEnabled(false);
+        Alert.alert('Cancelled', 'Biometric setup was cancelled.');
+        return;
+      }
     }
     await AsyncStorage.setItem('biometric_enabled', value ? 'true' : 'false');
-    setBiometricEnabled(value);
   };
 
   const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);

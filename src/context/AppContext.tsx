@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import { jwtDecode } from 'jwt-decode';
 import { WalletsProvider } from './WalletsContext';
 import { TransactionsProvider } from './TransactionsContext';
 import { User } from '../types';
@@ -23,19 +25,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Check for existing token on app start
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const storedToken = await AsyncStorage.getItem('token');
         const storedUser = await AsyncStorage.getItem('user');
+
         if (storedToken && storedUser) {
+          const decoded = jwtDecode<{ exp: number }>(storedToken);
+          if (decoded.exp < Date.now() / 1000) {
+            await AsyncStorage.multiRemove(['token', 'user', 'biometric_enabled']);
+            try { await SecureStore.deleteItemAsync('pin_hash'); } catch {}
+            return;
+          }
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
           setIsAuthenticated(true);
         }
       } catch {
-        // No stored session
+        // Malformed token or storage error — treat as logged out
       } finally {
         setIsLoading(false);
       }
@@ -56,7 +64,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       throw new Error(data.message || 'Login failed');
     }
 
-    // Store token and user in AsyncStorage
     await AsyncStorage.setItem('token', data.token);
     await AsyncStorage.setItem('user', JSON.stringify(data.user));
 
@@ -70,6 +77,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logout = async (): Promise<void> => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('user');
+    await AsyncStorage.removeItem('biometric_enabled');
+    try { await SecureStore.deleteItemAsync('pin_hash'); } catch {}
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
