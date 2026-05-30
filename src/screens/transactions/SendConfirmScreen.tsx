@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  Modal,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
@@ -15,13 +17,57 @@ import { useApp } from '../../context/AppContext';
 import { useTransactions } from '../../context/TransactionsContext';
 import { API_URL, authHeaders } from '../../config/api';
 
+const PIN_LENGTH = 4;
+const NUMPAD_KEYS = [
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+  ['', '0', 'backspace'],
+];
+
 export default function SendConfirmScreen({ navigation, route }: RootStackScreenProps<'SendConfirm'>) {
   const { recipient, amount, fee, total, wallet } = route.params;
   const [isLoading, setIsLoading] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinDigits, setPinDigits] = useState<string[]>([]);
+  const [pinError, setPinError] = useState('');
+  const shakeAnim = useRef(new Animated.Value(0)).current;
   const { token } = useApp();
   const { refresh } = useTransactions();
 
-  const handleConfirm = async () => {
+  const shake = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 12, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -12, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const closeModal = () => {
+    setShowPinModal(false);
+    setPinDigits([]);
+    setPinError('');
+  };
+
+  const handleDigit = (digit: string) => {
+    if (pinDigits.length >= PIN_LENGTH || isLoading) return;
+    const next = [...pinDigits, digit];
+    setPinDigits(next);
+    setPinError('');
+    if (next.length === PIN_LENGTH) {
+      void submitWithPin(next.join(''));
+    }
+  };
+
+  const handleBackspace = () => {
+    if (isLoading) return;
+    setPinDigits((prev) => prev.slice(0, -1));
+    setPinError('');
+  };
+
+  const submitWithPin = async (pin: string) => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/transactions/send`, {
@@ -32,21 +78,30 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
           recipientPhone: recipient.phone,
           amount,
           senderWalletId: wallet.id,
+          pin,
         }),
       });
 
       const data = await response.json();
 
+      if (response.status === 401) {
+        shake();
+        setPinError('Incorrect PIN');
+        setPinDigits([]);
+        return;
+      }
+
       if (!response.ok) {
+        closeModal();
         Alert.alert('Error', data.message || 'Transaction failed. Please try again.');
         return;
       }
 
-      // Refresh transactions list
       await refresh();
-
+      closeModal();
       navigation.navigate('SendSuccess', { recipient, amount, fee });
     } catch {
+      closeModal();
       Alert.alert('Error', 'Transaction failed. Check your connection and try again.');
     } finally {
       setIsLoading(false);
@@ -132,20 +187,107 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.confirmButton}
-          onPress={handleConfirm}
-          disabled={isLoading}
+          onPress={() => setShowPinModal(true)}
           activeOpacity={0.8}
         >
-          {isLoading ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <>
-              <Text style={styles.confirmButtonText}>Send Money</Text>
-              <Ionicons name="send" size={18} color={COLORS.white} />
-            </>
-          )}
+          <Text style={styles.confirmButtonText}>Send Money</Text>
+          <Ionicons name="send" size={18} color={COLORS.white} />
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={showPinModal}
+        transparent
+        animationType="fade"
+        onRequestClose={isLoading ? undefined : closeModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={closeModal}
+              disabled={isLoading}
+              activeOpacity={0.6}
+            >
+              <Ionicons
+                name="close"
+                size={24}
+                color={isLoading ? COLORS.textMuted : COLORS.textSecondary}
+              />
+            </TouchableOpacity>
+
+            <View style={styles.lockIconCircle}>
+              <Ionicons name="lock-closed" size={32} color={COLORS.primary} />
+            </View>
+
+            <Text style={styles.modalTitle}>Enter PIN to confirm</Text>
+            <Text style={styles.modalSubtitle}>Authorise this transfer</Text>
+
+            <Animated.View
+              style={[styles.dotsRow, { transform: [{ translateX: shakeAnim }] }]}
+            >
+              {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+                <View
+                  key={i}
+                  style={[styles.dot, i < pinDigits.length && styles.dotFilled]}
+                />
+              ))}
+            </Animated.View>
+
+            <View style={styles.pinErrorContainer}>
+              {pinError ? (
+                <Text style={styles.pinError}>{pinError}</Text>
+              ) : null}
+            </View>
+
+            {isLoading ? (
+              <ActivityIndicator
+                color={COLORS.primary}
+                size="large"
+                style={styles.loader}
+              />
+            ) : (
+              <View style={styles.numpad}>
+                {NUMPAD_KEYS.map((row, rowIndex) => (
+                  <View key={rowIndex} style={styles.numpadRow}>
+                    {row.map((key, colIndex) => {
+                      if (key === '') {
+                        return <View key={colIndex} style={styles.numpadKey} />;
+                      }
+                      if (key === 'backspace') {
+                        return (
+                          <TouchableOpacity
+                            key={colIndex}
+                            style={styles.numpadKey}
+                            onPress={handleBackspace}
+                            activeOpacity={0.6}
+                          >
+                            <Ionicons
+                              name="backspace-outline"
+                              size={26}
+                              color={COLORS.textPrimary}
+                            />
+                          </TouchableOpacity>
+                        );
+                      }
+                      return (
+                        <TouchableOpacity
+                          key={colIndex}
+                          style={styles.numpadKey}
+                          onPress={() => handleDigit(key)}
+                          activeOpacity={0.6}
+                        >
+                          <Text style={styles.numpadDigit}>{key}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -303,5 +445,103 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
     color: COLORS.white,
+  },
+  // PIN modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+  },
+  modalCard: {
+    width: '100%',
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    paddingTop: SPACING.xxl,
+    paddingBottom: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    alignItems: 'center',
+    position: 'relative',
+    ...SHADOWS.md,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: SPACING.md,
+    right: SPACING.md,
+    padding: SPACING.xs,
+  },
+  lockIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  modalTitle: {
+    fontSize: FONTS.sizes.xl,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xl,
+    textAlign: 'center',
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    gap: SPACING.lg,
+    marginBottom: SPACING.sm,
+  },
+  dot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    backgroundColor: 'transparent',
+  },
+  dotFilled: {
+    backgroundColor: COLORS.primary,
+  },
+  pinErrorContainer: {
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  pinError: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.error,
+    textAlign: 'center',
+  },
+  loader: {
+    marginVertical: SPACING.xl,
+  },
+  numpad: {
+    width: '100%',
+    maxWidth: 320,
+    gap: SPACING.sm,
+  },
+  numpadRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+  },
+  numpadKey: {
+    flex: 1,
+    aspectRatio: 1.4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  numpadDigit: {
+    fontSize: FONTS.sizes.xxl,
+    fontWeight: '500',
+    color: COLORS.textPrimary,
   },
 });
