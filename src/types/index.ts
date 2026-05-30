@@ -6,6 +6,7 @@ export interface User {
   name: string;
   alias: string;
   phone: string;
+  hasPin?: boolean;
   isAgent?: boolean;
   agentCode?: string;
   agentEarnings?: number;
@@ -57,6 +58,8 @@ export type AuthStackParamList = {
   Login: undefined;
   OTP: { phoneNumber: string; isNewUser: boolean };
   CreateAlias: undefined;
+  SetupPin: undefined;
+  SetupBiometric: undefined;
 };
 
 export type RootStackParamList = {

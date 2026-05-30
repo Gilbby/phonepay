@@ -5,6 +5,8 @@ import SplashScreen from '../screens/auth/SplashScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import OTPScreen from '../screens/auth/OTPScreen';
 import CreateAliasScreen from '../screens/auth/CreateAliasScreen';
+import SetupPinScreen from '../screens/auth/SetupPinScreen';
+import SetupBiometricScreen from '../screens/auth/SetupBiometricScreen';
 
 import { AuthStackParamList } from '../types';
 
@@ -17,6 +19,8 @@ export default function AuthStack() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="OTP" component={OTPScreen} />
       <Stack.Screen name="CreateAlias" component={CreateAliasScreen} />
+      <Stack.Screen name="SetupPin" component={SetupPinScreen} />
+      <Stack.Screen name="SetupBiometric" component={SetupBiometricScreen} />
     </Stack.Navigator>
   );
 }

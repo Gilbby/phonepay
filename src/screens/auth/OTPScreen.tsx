@@ -59,19 +59,16 @@ export default function OTPScreen({ navigation, route }: Props) {
 
     setIsLoading(true);
     try {
-          if (isNewUser) {
-          // Verify OTP and get token for new user
-          await login(`+260${phoneNumber}`, otpString);
-          // login() sets isAuthenticated but isNewUser from backend will be true
-          // navigate to CreateAlias to complete registration
-          navigation.replace('CreateAlias');
-        } else {
-        // Existing user — verify OTP against backend and login
-        await login(`+260${phoneNumber}`, otpString);
+      const result = await login(`+260${phoneNumber}`, otpString);
+      if (isNewUser) {
+        navigation.replace('CreateAlias');
+      } else if (!result.hasPin) {
+        navigation.replace('SetupPin');
+      } else {
         navigation.getParent()?.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' as never }],
-      });
+          index: 0,
+          routes: [{ name: 'MainTabs' as never }],
+        });
       }
     } catch {
       Alert.alert('Error', 'Invalid OTP. Please try again.');

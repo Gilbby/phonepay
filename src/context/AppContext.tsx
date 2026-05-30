@@ -10,7 +10,7 @@ type AppContextValue = {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (phone: string, otp: string) => Promise<{ isNewUser: boolean }>;
+  login: (phone: string, otp: string) => Promise<{ isNewUser: boolean; hasPin: boolean }>;
   logout: () => Promise<void>;
   setUser: (user: User) => void;
 };
@@ -43,7 +43,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     void checkAuth();
   }, []);
 
-  const login = async (phone: string, otp: string): Promise<{ isNewUser: boolean }> => {
+  const login = async (phone: string, otp: string): Promise<{ isNewUser: boolean; hasPin: boolean }> => {
     const response = await fetch(`${API_URL}/auth/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,7 +64,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(data.user);
     setIsAuthenticated(true);
 
-    return { isNewUser: data.isNewUser };
+    return { isNewUser: data.isNewUser, hasPin: !!data.user?.hasPin };
   };
 
   const logout = async (): Promise<void> => {

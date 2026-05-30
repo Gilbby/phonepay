@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { MainTabsParamList, RootStackParamList } from '../../types';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -80,6 +82,31 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
   const [isAgentMode, setIsAgentMode] = useState(!!user?.isAgent);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  useEffect(() => {
+    AsyncStorage.getItem('biometric_enabled').then((val) => {
+      if (val === 'true') setBiometricEnabled(true);
+    });
+  }, []);
+
+  const handleBiometricToggle = async (value: boolean) => {
+    if (value) {
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!hasHardware || !isEnrolled) {
+        Alert.alert('Not available', 'Biometric authentication is not set up on this device.');
+        return;
+      }
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Confirm to enable biometric login',
+        cancelLabel: 'Cancel',
+        disableDeviceFallback: false,
+      });
+      if (!result.success) return;
+    }
+    await AsyncStorage.setItem('biometric_enabled', value ? 'true' : 'false');
+    setBiometricEnabled(value);
+  };
 
   const totalBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
   const walletCount = wallets.length;
@@ -230,7 +257,7 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
           <View style={styles.settingsCard}>
             <SettingItem icon="lock-closed-outline" label="Change PIN" onPress={() => {}} />
             <View style={styles.settingDivider} />
-            <SettingToggle icon="finger-print-outline" label="Biometric Login" value={biometricEnabled} onValueChange={setBiometricEnabled} />
+            <SettingToggle icon="finger-print-outline" label="Biometric Login" value={biometricEnabled} onValueChange={(v) => void handleBiometricToggle(v)} />
             <View style={styles.settingDivider} />
             <SettingItem icon="shield-checkmark-outline" label="Two-Factor Authentication" value="Enabled" onPress={() => {}} />
             <View style={styles.settingDivider} />

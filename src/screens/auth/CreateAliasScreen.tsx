@@ -14,8 +14,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
-import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthStackParamList, RootStackParamList } from '../../types';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { API_URL, authHeaders } from '../../config/api';
 
@@ -55,10 +55,7 @@ export default function CreateAliasScreen({ navigation }: Props) {
       }
 
       setUser(data.user);
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' as never }],
-      });
+      navigation.replace('SetupPin');
     } catch {
       Alert.alert('Error', 'Failed to create alias. Please try again.');
     } finally {

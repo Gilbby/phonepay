@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,6 +45,28 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { user } = useApp();
 
   const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+
+  const handleSendMoney = () => {
+    if (walletList.length === 0) {
+      Alert.alert('No Wallet Added', 'You need to add a wallet before sending money.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Add Wallet', onPress: () => navigation.navigate('Wallets') },
+      ]);
+      return;
+    }
+    rootNav?.navigate('TransactionStack' as any, { screen: 'SendMoney' });
+  };
+
+  const handleGetCash = () => {
+    if (walletList.length === 0) {
+      Alert.alert('No Wallet Added', 'You need to add a wallet before withdrawing cash.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Add Wallet', onPress: () => navigation.navigate('Wallets') },
+      ]);
+      return;
+    }
+    rootNav?.navigate('TransactionStack' as any, { screen: 'GetCash' });
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -102,7 +125,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               icon="send"
               label="Send"
               color={COLORS.primary}
-              onPress={() => rootNav?.navigate('TransactionStack' as any, { screen: 'SendMoney' })}
+              onPress={handleSendMoney}
             />
             <QuickActionButton
               icon="download"
@@ -114,7 +137,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               icon="cash"
               label="Get Cash"
               color={COLORS.warning}
-              onPress={() => rootNav?.navigate('TransactionStack' as any, { screen: 'GetCash' })}
+              onPress={handleGetCash}
             />
           </View>
         </View>
