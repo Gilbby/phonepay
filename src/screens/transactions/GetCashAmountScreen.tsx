@@ -47,7 +47,7 @@ export default function GetCashAmountScreen({ navigation, route }: RootStackScre
   const primaryWallet = wallets.find((w) => w.isPrimary) || wallets[0] || { balance: 0, name: '', currency: 'K' };
 
   const numericAmount = parseFloat(amount) || 0;
-  const fee = calculateFee(numericAmount);
+  const fee = calculateFee(numericAmount, false);
   const total = numericAmount + fee;
   const isValidAmount = numericAmount > 0;
 

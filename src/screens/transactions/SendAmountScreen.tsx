@@ -8,11 +8,12 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { useWallets } from '../../context/WalletsContext';
-import calculateFee from '../../utils/calculateFee';
+import calculateFee, { isSameNetwork } from '../../utils/calculateFee';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { RootStackScreenProps } from '../../types';
@@ -25,7 +26,11 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
   const primaryWallet = wallets.find((w) => w.isPrimary) || wallets[0] || { id: 'unknown', isPrimary: false, balance: 0, name: '', currency: 'K' };
 
   const numericAmount = parseFloat(amount) || 0;
-  const fee = calculateFee(numericAmount);
+  const cross = !isSameNetwork(
+    (primaryWallet as any).phone ?? '',
+    recipient.phone ?? ''
+  );
+  const fee = calculateFee(numericAmount, cross);
   const total = numericAmount + fee;
   const isValidAmount = numericAmount > 0;
 
@@ -33,6 +38,10 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
 
   const handleContinue = () => {
     if (!isValidAmount) return;
+    if (numericAmount > 10000) {
+      Alert.alert('Amount too large', 'Maximum transaction amount is K10,000.');
+      return;
+    }
     navigation.navigate('SendConfirm', {
       recipient,
       amount: numericAmount,
@@ -119,6 +128,9 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
             <View style={styles.feeRow}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>K{total.toFixed(2)}</Text>
+            </View>
+            <View style={styles.networkTypeRow}>
+              <Text style={styles.networkTypeText}>{cross ? 'Cross-network transfer' : 'Same-network transfer'}</Text>
             </View>
           </View>
         )}
@@ -279,6 +291,14 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
     color: COLORS.primary,
+  },
+  networkTypeRow: {
+    marginTop: SPACING.sm,
+    alignItems: 'center',
+  },
+  networkTypeText: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
   },
   footer: {
     paddingTop: SPACING.lg,
