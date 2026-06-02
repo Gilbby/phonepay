@@ -11,19 +11,23 @@ export const isSameNetwork = (phone1: string, phone2: string): boolean => {
 };
 
 const calculateFee = (amount: number, crossNetwork: boolean = false): number => {
-  // Same-network fee table
-  if (!crossNetwork) {
-    if (amount <= 100) return 2;
-    if (amount <= 500) return 5;
-    if (amount <= 1000) return 10;
-    return 15;
+  if (crossNetwork) {
+    if (amount <= 150)  return 2.40;
+    if (amount <= 300)  return 4.90;
+    if (amount <= 500)  return 9.90;
+    if (amount <= 1000) return 19.90;
+    if (amount <= 3000) return 29.90;
+    if (amount <= 5000) return 28.90;
+    return 69.80;
+  } else {
+    if (amount <= 150)  return 1.50;
+    if (amount <= 300)  return 1.70;
+    if (amount <= 500)  return 2.00;
+    if (amount <= 1000) return 2.10;
+    if (amount <= 3000) return 7.10;
+    if (amount <= 5000) return 8.10;
+    return 9.10;
   }
-
-  // Cross-network fee table (higher fees)
-  if (amount <= 100) return 3;
-  if (amount <= 500) return 7;
-  if (amount <= 1000) return 12;
-  return 20;
 };
 
 export default calculateFee;
