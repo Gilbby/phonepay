@@ -155,7 +155,7 @@ export default function AppLockScreen({ onUnlock, onLockout }: Props) {
   if (mode === 'loading') {
     return (
       <View style={styles.splash}>
-        <Text style={styles.logoText}>PhonePay</Text>
+        <Text style={styles.logoText}>Snappay</Text>
         <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
@@ -164,7 +164,7 @@ export default function AppLockScreen({ onUnlock, onLockout }: Props) {
   if (mode === 'biometric') {
     return (
       <View style={styles.splash}>
-        <Text style={styles.logoText}>PhonePay</Text>
+        <Text style={styles.logoText}>Snappay</Text>
         <ActivityIndicator size="large" color={COLORS.primary} />
         <TouchableOpacity style={styles.textLink} onPress={() => setMode('pin')}>
           <Text style={styles.textLinkText}>Use PIN instead</Text>
@@ -177,7 +177,7 @@ export default function AppLockScreen({ onUnlock, onLockout }: Props) {
     <View style={styles.container}>
       <View style={styles.inner}>
         <View style={styles.header}>
-          <Text style={styles.logoText}>PhonePay</Text>
+          <Text style={styles.logoText}>Snappay</Text>
           <View style={styles.iconCircle}>
             <Ionicons name="lock-closed" size={28} color={COLORS.primary} />
           </View>

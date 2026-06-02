@@ -127,10 +127,10 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
     try {
       const parsed = JSON.parse(data);
 
-      if (parsed.app !== 'PhonePay') {
+      if (parsed.app !== 'Snappay') {
         Alert.alert(
           'Invalid QR Code',
-          'This QR code is not from PhonePay.',
+          'This QR code is not from Snappay.',
           [{ text: 'Scan Again', onPress: () => setScanned(false) }]
         );
         return;
@@ -168,7 +168,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
           <Ionicons name="camera-outline" size={64} color={COLORS.textMuted} />
           <Text style={styles.permissionTitle}>Camera Access Required</Text>
           <Text style={styles.permissionSubtext}>
-            Allow camera access to scan PhonePay QR codes
+            Allow camera access to scan Snappay QR codes
           </Text>
           <TouchableOpacity
             style={styles.permissionButton}
@@ -197,7 +197,7 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
             <View style={[styles.corner, styles.cornerBottomRight]} />
           </View>
           <Text style={styles.scanHint}>
-            Point camera at a PhonePay QR code
+            Point camera at a Snappay QR code
           </Text>
           {scanned && (
             <TouchableOpacity

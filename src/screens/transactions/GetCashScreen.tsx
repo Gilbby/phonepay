@@ -126,10 +126,10 @@ export default function GetCashScreen({ navigation }: RootStackScreenProps<'GetC
     try {
       const parsed = JSON.parse(data);
 
-      if (parsed.app !== 'PhonePay') {
+      if (parsed.app !== 'Snappay') {
         Alert.alert(
           'Invalid QR Code',
-          'This QR code is not from PhonePay.',
+          'This QR code is not from Snappay.',
           [{ text: 'Scan Again', onPress: () => setScanned(false) }]
         );
         return;
@@ -138,7 +138,7 @@ export default function GetCashScreen({ navigation }: RootStackScreenProps<'GetC
       if (!parsed.agentCode) {
         Alert.alert(
           'Not an Agent QR Code',
-          'This PhonePay user is not an agent. Please scan an agent QR code.',
+          'This Snappay user is not an agent. Please scan an agent QR code.',
           [{ text: 'Scan Again', onPress: () => setScanned(false) }]
         );
         return;
@@ -205,7 +205,7 @@ export default function GetCashScreen({ navigation }: RootStackScreenProps<'GetC
             <View style={[styles.corner, styles.cornerBottomRight]} />
           </View>
           <Text style={styles.scanHint}>
-            Point camera at an agent's PhonePay QR code
+            Point camera at an agent's Snappay QR code
           </Text>
           {scanned && (
             <TouchableOpacity

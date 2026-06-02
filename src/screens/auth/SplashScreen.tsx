@@ -19,7 +19,7 @@ export default function SplashScreen({ navigation }: AuthStackScreenProps<'Splas
         <View style={styles.iconCircle}>
           <Ionicons name="wallet" size={48} color={COLORS.white} />
         </View>
-        <Text style={styles.title}>PhonePay</Text>
+        <Text style={styles.title}>Snappay</Text>
         <Text style={styles.subtitle}>Fast. Secure. Simple.</Text>
       </View>
       

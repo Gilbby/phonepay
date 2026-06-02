@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "PhonePay",
-    "slug": "phonepay",
+    "name": "Snappay",
+    "slug": "snappay",
+    "scheme": "snappay",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./public/icon-light-32x32.png",

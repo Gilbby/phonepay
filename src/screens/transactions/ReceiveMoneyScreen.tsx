@@ -24,7 +24,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
     alias: user?.alias ?? '',
     phone: user?.phone ?? '',
     agentCode: user?.isAgent ? user?.agentCode : undefined,
-    app: 'PhonePay',
+    app: 'Snappay',
   });
 
   const handleCopy = () => {
@@ -36,7 +36,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Send me money on PhonePay! My alias is ${user?.alias ?? ''}`,
+        message: `Send me money on Snappay! My alias is ${user?.alias ?? ''}`,
       });
     } catch {
       // UI only
@@ -73,7 +73,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
                 {user?.alias?.replace('@', '').charAt(0).toUpperCase() ?? 'P'}
               </Text>
             </View>
-            <Text style={styles.userName}>{user?.alias?.replace('@', '') ?? 'PhonePay User'}</Text>
+            <Text style={styles.userName}>{user?.alias?.replace('@', '') ?? 'Snappay User'}</Text>
             <Text style={styles.userAlias}>{user?.alias ?? ''}</Text>
           </View>
         </View>

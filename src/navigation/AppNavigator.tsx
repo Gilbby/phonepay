@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import {
   AppState,
   AppStateStatus,
+  PanResponder,
   View,
   Text,
   ActivityIndicator,
@@ -23,6 +24,35 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function AppNavigator() {
   const { isAuthenticated, isLoading, logout } = useApp();
   const backgroundedAt = useRef<number | null>(null);
+
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+  const resetIdleTimer = () => {
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    if (!isAuthenticated) return;
+    idleTimer.current = setTimeout(() => {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate('AppLock');
+      }
+    }, IDLE_TIMEOUT);
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponderCapture: () => {
+        resetIdleTimer();
+        return false; // detect touch but don't consume it
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    if (isAuthenticated) resetIdleTimer();
+    return () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+    };
+  }, [isAuthenticated]);
 
   // Re-lock after 30 seconds in background. Uses navigationRef so this can
   // fire regardless of which screen is currently active in the stack.
@@ -49,13 +79,14 @@ export default function AppNavigator() {
   if (isLoading) {
     return (
       <View style={styles.splash}>
-        <Text style={styles.splashLogo}>PhonePay</Text>
+        <Text style={styles.splashLogo}>Snappay</Text>
         <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
 
   return (
+    <View style={{ flex: 1 }} {...panResponder.panHandlers}>
     <Stack.Navigator
       id="root"
       initialRouteName={isAuthenticated ? 'AppLock' : 'Auth'}
@@ -87,6 +118,7 @@ export default function AppNavigator() {
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
+    </View>
   );
 }
 

@@ -72,7 +72,7 @@ export default function LoginScreen({ navigation }: AuthStackScreenProps<'Login'
             <View style={styles.iconCircle}>
               <Ionicons name="wallet" size={32} color={COLORS.primary} />
             </View>
-            <Text style={styles.title}>Welcome to PhonePay</Text>
+            <Text style={styles.title}>Welcome to Snappay</Text>
             <Text style={styles.subtitle}>
               Enter your phone number to get started
             </Text>

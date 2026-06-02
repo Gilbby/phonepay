@@ -185,7 +185,7 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
               <Ionicons name="camera" size={16} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.userName}>{user?.alias ?? 'PhonePay User'}</Text>
+          <Text style={styles.userName}>{user?.alias ?? 'Snappay User'}</Text>
           <Text style={styles.userAlias}>{user?.alias ?? ''}</Text>
           <Text style={styles.userPhone}>{user?.phone ?? ''}</Text>
 
@@ -301,7 +301,7 @@ export default function ProfileScreen({ navigation }: BottomTabScreenProps<MainT
         </View>
 
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>PhonePay v1.0.0</Text>
+          <Text style={styles.versionText}>Snappay v1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
