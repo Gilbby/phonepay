@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
+import ViewShot from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
 import { RootStackScreenProps } from '../../types';
@@ -19,6 +21,7 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
   const [copied, setCopied] = useState(false);
   const { user } = useApp();
   const insets = useSafeAreaInsets();
+  const qrShotRef = useRef<ViewShot>(null);
 
   const qrValue = JSON.stringify({
     alias: user?.alias ?? '',
@@ -35,11 +38,29 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
 
   const handleShare = async () => {
     try {
-      await Share.share({
-        message: `Send me money on Snappay! My alias is ${user?.alias ?? ''}`,
-      });
+      const message = `Send money here\nor using the alias: ${user?.alias ?? ''}`;
+
+      if (qrShotRef.current?.capture) {
+        const uri = await qrShotRef.current.capture();
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(uri, {
+            mimeType: 'image/png',
+            dialogTitle: message,
+          });
+          return;
+        }
+      }
+
+      await Share.share({ message });
     } catch {
-      // UI only
+      try {
+        await Share.share({
+          message: `Send money here\nor using the alias: ${user?.alias ?? ''}`,
+        });
+      } catch {
+        // UI only
+      }
     }
   };
 
@@ -58,14 +79,22 @@ export default function ReceiveMoneyScreen({ navigation }: RootStackScreenProps<
         </View>
 
         <View style={styles.qrCard}>
-          <View style={styles.qrContainer}>
-            <QRCode
-              value={qrValue}
-              size={180}
-              color={COLORS.textPrimary}
-              backgroundColor={COLORS.white}
-            />
-          </View>
+          <ViewShot ref={qrShotRef} options={{ format: 'png', quality: 1 }}>
+            <View style={styles.shareCapture}>
+              <View style={styles.qrContainer}>
+                <QRCode
+                  value={qrValue}
+                  size={180}
+                  color={COLORS.textPrimary}
+                  backgroundColor={COLORS.white}
+                />
+              </View>
+              <Text style={styles.shareCaptionTitle}>Send money here</Text>
+              <Text style={styles.shareCaptionAlias}>
+                or using the alias: {user?.alias ?? ''}
+              </Text>
+            </View>
+          </ViewShot>
 
           <View style={styles.userInfo}>
             <View style={styles.avatar}>
@@ -348,5 +377,22 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
     color: COLORS.white,
+  },
+  shareCapture: {
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    padding: SPACING.lg,
+    borderRadius: RADIUS.lg,
+  },
+  shareCaptionTitle: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginTop: SPACING.md,
+  },
+  shareCaptionAlias: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.primary,
+    marginTop: 4,
   },
 });

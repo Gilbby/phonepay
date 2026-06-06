@@ -19,24 +19,47 @@ import { RootStackScreenProps, User } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { API_URL, authHeaders } from '../../config/api';
 
-const ContactItem: React.FC<{ user: User; onSelect: (u: User) => void }> = ({ user, onSelect }) => (
-  <TouchableOpacity style={styles.contactItem} onPress={() => onSelect(user)} activeOpacity={0.7}>
-    <View style={styles.contactAvatar}>
-      <Text style={styles.contactInitial}>
-        {(user.alias?.replace('@', '') ?? user.phone ?? '?').charAt(0).toUpperCase()}
-      </Text>
-    </View>
-    <View style={styles.contactInfo}>
-      <Text style={styles.contactName}>{user.alias?.replace('@', '') ?? 'Unknown'}</Text>
-      <Text style={styles.contactAlias}>{user.alias}</Text>
-    </View>
-    <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-  </TouchableOpacity>
-);
+const detectNetwork = (phone?: string): { name: string; color: string } => {
+  if (!phone) return { name: '', color: COLORS.textMuted };
+  const cleaned = phone.replace(/^\+260/, '').replace(/^0/, '');
+  const prefix = cleaned.substring(0, 2);
+  if (['96', '76'].includes(prefix)) return { name: 'MTN', color: '#FFCC00' };
+  if (['97', '77'].includes(prefix)) return { name: 'Airtel', color: '#E40000' };
+  if (['95', '75'].includes(prefix)) return { name: 'Zamtel', color: '#00A551' };
+  return { name: '', color: COLORS.textMuted };
+};
+
+const ContactItem: React.FC<{ user: User; onSelect: (u: User) => void }> = ({ user, onSelect }) => {
+  const network = detectNetwork(user.phone);
+  return (
+    <TouchableOpacity style={styles.contactItem} onPress={() => onSelect(user)} activeOpacity={0.7}>
+      <View style={styles.contactAvatar}>
+        <Text style={styles.contactInitial}>
+          {(user.alias?.replace('@', '') ?? user.phone ?? '?').charAt(0).toUpperCase()}
+        </Text>
+      </View>
+      <View style={styles.contactInfo}>
+        <Text style={styles.contactName}>{user.alias?.replace('@', '') ?? 'Unknown'}</Text>
+        {user.phone ? (
+          <View style={styles.contactMetaRow}>
+            <Text style={styles.contactPhone}>{user.phone}</Text>
+            {network.name ? (
+              <>
+                <View style={[styles.networkDot, { backgroundColor: network.color }]} />
+                <Text style={styles.networkName}>{network.name}</Text>
+              </>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
+    </TouchableOpacity>
+  );
+};
 
 export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'SendMoney'>) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState('alias');
+  const [selectedTab, setSelectedTab] = useState('search');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [scanned, setScanned] = useState(false);
@@ -223,29 +246,16 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
           {/* Tabs */}
           <View style={styles.tabs}>
             <TouchableOpacity
-              style={[styles.tab, selectedTab === 'alias' && styles.tabActive]}
-              onPress={() => setSelectedTab('alias')}
+              style={[styles.tab, selectedTab === 'search' && styles.tabActive]}
+              onPress={() => setSelectedTab('search')}
             >
               <Ionicons
-                name="at"
+                name="search"
                 size={18}
-                color={selectedTab === 'alias' ? COLORS.primary : COLORS.textMuted}
+                color={selectedTab === 'search' ? COLORS.primary : COLORS.textMuted}
               />
-              <Text style={[styles.tabText, selectedTab === 'alias' && styles.tabTextActive]}>
-                Alias
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, selectedTab === 'phone' && styles.tabActive]}
-              onPress={() => setSelectedTab('phone')}
-            >
-              <Ionicons
-                name="call"
-                size={18}
-                color={selectedTab === 'phone' ? COLORS.primary : COLORS.textMuted}
-              />
-              <Text style={[styles.tabText, selectedTab === 'phone' && styles.tabTextActive]}>
-                Phone
+              <Text style={[styles.tabText, selectedTab === 'search' && styles.tabTextActive]}>
+                Search
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -272,12 +282,12 @@ export default function SendMoneyScreen({ navigation }: RootStackScreenProps<'Se
                 <Ionicons name="search" size={20} color={COLORS.textMuted} />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder={selectedTab === 'alias' ? 'Enter alias (e.g. @john)' : 'Enter phone number'}
+                  placeholder="Enter alias or phone number"
                   placeholderTextColor={COLORS.textMuted}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   autoCapitalize="none"
-                  keyboardType={selectedTab === 'phone' ? 'phone-pad' : 'default'}
+                  keyboardType="default"
                 />
                 {isSearching ? (
                   <ActivityIndicator size="small" color={COLORS.primary} />
@@ -442,13 +452,28 @@ const styles = StyleSheet.create({
   },
   contactName: {
     fontSize: FONTS.sizes.md,
-    fontWeight: '500',
+    fontWeight: '600',
     color: COLORS.textPrimary,
   },
-  contactAlias: {
+  contactMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  contactPhone: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.primary,
-    marginTop: 2,
+  },
+  networkDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
+    marginRight: 5,
+  },
+  networkName: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
   },
   emptyState: {
     justifyContent: 'center',

@@ -18,8 +18,19 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { RootStackScreenProps } from '../../types';
 
+const detectNetwork = (phone?: string): { name: string; color: string } => {
+  if (!phone) return { name: '', color: COLORS.textMuted };
+  const cleaned = phone.replace(/^\+260/, '').replace(/^0/, '');
+  const prefix = cleaned.substring(0, 2);
+  if (['96', '76'].includes(prefix)) return { name: 'MTN', color: '#FFCC00' };
+  if (['97', '77'].includes(prefix)) return { name: 'Airtel', color: '#E40000' };
+  if (['95', '75'].includes(prefix)) return { name: 'Zamtel', color: '#00A551' };
+  return { name: '', color: COLORS.textMuted };
+};
+
 export default function SendAmountScreen({ navigation, route }: RootStackScreenProps<'SendAmount'>) {
   const { recipient } = route.params;
+  const recipientNetwork = detectNetwork(recipient.phone);
   const [amount, setAmount] = useState('');
   const { wallets } = useWallets();
   const insets = useSafeAreaInsets();
@@ -67,7 +78,17 @@ export default function SendAmountScreen({ navigation, route }: RootStackScreenP
           </View>
           <View style={styles.recipientInfo}>
             <Text style={styles.recipientName}>{recipient.name}</Text>
-            <Text style={styles.recipientAlias}>{recipient.alias}</Text>
+            {recipient.phone ? (
+              <View style={styles.recipientMetaRow}>
+                <Text style={styles.recipientPhone}>{recipient.phone}</Text>
+                {recipientNetwork.name ? (
+                  <>
+                    <View style={[styles.networkDot, { backgroundColor: recipientNetwork.color }]} />
+                    <Text style={styles.networkName}>{recipientNetwork.name}</Text>
+                  </>
+                ) : null}
+              </View>
+            ) : null}
           </View>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="pencil" size={20} color={COLORS.primary} />
@@ -196,10 +217,25 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.textPrimary,
   },
-  recipientAlias: {
+  recipientMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  recipientPhone: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.primary,
-    marginTop: 2,
+  },
+  networkDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
+    marginRight: 5,
+  },
+  networkName: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
   },
   amountContainer: {
     alignItems: 'center',

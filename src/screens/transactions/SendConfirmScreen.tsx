@@ -18,6 +18,16 @@ import { useTransactions } from '../../context/TransactionsContext';
 import { API_URL, authHeaders } from '../../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+const detectNetwork = (phone?: string): { name: string; color: string } => {
+  if (!phone) return { name: '', color: COLORS.textMuted };
+  const cleaned = phone.replace(/^\+260/, '').replace(/^0/, '');
+  const prefix = cleaned.substring(0, 2);
+  if (['96', '76'].includes(prefix)) return { name: 'MTN', color: '#FFCC00' };
+  if (['97', '77'].includes(prefix)) return { name: 'Airtel', color: '#E40000' };
+  if (['95', '75'].includes(prefix)) return { name: 'Zamtel', color: '#00A551' };
+  return { name: '', color: COLORS.textMuted };
+};
+
 const PIN_LENGTH = 4;
 const NUMPAD_KEYS = [
   ['1', '2', '3'],
@@ -28,6 +38,7 @@ const NUMPAD_KEYS = [
 
 export default function SendConfirmScreen({ navigation, route }: RootStackScreenProps<'SendConfirm'>) {
   const { recipient, amount, fee, total, wallet } = route.params;
+  const recipientNetwork = detectNetwork(recipient.phone);
   const [isLoading, setIsLoading] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinDigits, setPinDigits] = useState<string[]>([]);
@@ -136,7 +147,6 @@ export default function SendConfirmScreen({ navigation, route }: RootStackScreen
               </View>
               <View>
                 <Text style={styles.recipientName}>{recipient.name}</Text>
-                <Text style={styles.recipientAlias}>{recipient.alias}</Text>
               </View>
             </View>
           </View>
@@ -366,9 +376,25 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.textPrimary,
   },
-  recipientAlias: {
+  recipientNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  recipientPhone: {
     fontSize: FONTS.sizes.xs,
     color: COLORS.primary,
+    marginTop: 2,
+  },
+  networkDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    marginLeft: 7,
+    marginRight: 4,
+  },
+  networkName: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
   },
   divider: {
     height: 1,
